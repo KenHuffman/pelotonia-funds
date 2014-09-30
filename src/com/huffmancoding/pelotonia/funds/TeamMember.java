@@ -18,6 +18,9 @@ public class TeamMember
     /** the amount the team member HAS to raise. */
     private final BigDecimal commitment;
 
+    /** whether the rider is a high roller. */
+    private final boolean isHighRoller;
+
     /** the amount the team member has raised on his/her own. */
     private final BigDecimal raised;
 
@@ -34,10 +37,11 @@ public class TeamMember
      * @param commitment commitment by rider or BigDecimal.ZERO
      * @param raised amount member has raised on his/her own
      */
-    public TeamMember(String fullName, BigDecimal commitment, BigDecimal raised)
+    public TeamMember(String fullName, BigDecimal commitment, boolean isHighRoller, BigDecimal raised)
     {
         this.fullName = fullName;
         this.commitment = commitment;
+        this.isHighRoller = isHighRoller;
         this.raised = raised;
     }
 
@@ -50,7 +54,14 @@ public class TeamMember
     {
         if (isRider())
         {
-            return "Rider " + fullName;
+            if (isHighRoller)
+            {
+                return "High Roller " + fullName;
+            }
+            else
+            {
+                return "Rider " + fullName;
+            }
         }
         else
         {
@@ -66,6 +77,16 @@ public class TeamMember
     public BigDecimal getCommitment()
     {
         return commitment;
+    }
+
+    /**
+     * Whether the team member is a high roller.
+     *
+     * @return true, if this team member is a high roller.
+     */
+    public boolean isHighRoller()
+    {
+        return isHighRoller;
     }
 
     /**

@@ -35,14 +35,14 @@ public class FundSharer
      * @param funds the funds that are available to share
      * @return the funds remaining after sharing, could be ZERO if the funds run out before all riders reach their commitment.
      */
-    public BigDecimal allocateSharableToTeamMembers(BigDecimal funds)
+    public BigDecimal allocateSharableToNonHighRollers(BigDecimal funds)
     {
         shareableFunds = funds;
 
         AtomicBoolean usedExcessFromMembers = new AtomicBoolean(false);
 
         List<TeamMember> membersWithShortfall;
-        for (int round = 1; ! (membersWithShortfall = findMembersShortOfCommitment()).isEmpty(); ++round)
+        for (int round = 1; ! (membersWithShortfall = findNonHighRollersShortOfCommitment()).isEmpty(); ++round)
         {
             BigDecimal perMember = calculateFundingRoundAmount(membersWithShortfall, usedExcessFromMembers);
             if (perMember.signum() == 0)
@@ -80,24 +80,24 @@ public class FundSharer
      *
      * @return the list of members who need money
      */
-    private List<TeamMember> findMembersShortOfCommitment()
+    private List<TeamMember> findNonHighRollersShortOfCommitment()
     {
-        int ridersStillShortOfCommitment = 0;
+        int ridersShortOfCommitment = 0;
         BigDecimal totalRemainingShortfall = BigDecimal.ZERO;
 
         List<TeamMember> membersWithShortfall = new ArrayList<>();
         for (TeamMember teamMember : teamMemberList)
         {
             BigDecimal shortfall = teamMember.getShortfall();
-            if (shortfall.signum() > 0)
+            if (shortfall.signum() > 0 && !teamMember.isHighRoller())
             {
-                ++ridersStillShortOfCommitment;
+                ++ridersShortOfCommitment;
                 totalRemainingShortfall = totalRemainingShortfall.add(shortfall);
                 membersWithShortfall.add(teamMember);
             }
         }
 
-        FundUtils.log(ridersStillShortOfCommitment + " riders need " + FundUtils.fmt(totalRemainingShortfall) + " to reach their goal.");
+        FundUtils.log(ridersShortOfCommitment + " (non-high roller) riders need " + FundUtils.fmt(totalRemainingShortfall) + " to reach their goal.");
 
         return membersWithShortfall;
     }
@@ -201,6 +201,9 @@ public class FundSharer
         for (TeamMember teamMember : teamMemberList)
         {
             BigDecimal excess = teamMember.getShortfall().negate();
+            String excessCalculation = FundUtils.fmt(teamMember.getAmountRaised().add(teamMember.getAdjustmentTotal())) +
+                    " - " + FundUtils.fmt(teamMember.getCommitment());
+
             if (excess.signum() > 0)
             {
                 ++memberCount;
@@ -208,8 +211,7 @@ public class FundSharer
                 totalAmountSharedByMembers = totalAmountSharedByMembers.add(excess);
 
                 FundUtils.log(teamMember.getFullName() + " contributing excess funds of " + FundUtils.fmt(excess) +
-                        " (" + FundUtils.fmt(teamMember.getAmountRaised().add(teamMember.getAdjustmentTotal())) +
-                        " - " + FundUtils.fmt(teamMember.getCommitment()) + ") to the team.");
+                        " (" + excessCalculation + ") to the team.");
                 moveFromPeloton(teamMember, new FundAdjustment("Shared with team", excess.negate()));
             }
         }

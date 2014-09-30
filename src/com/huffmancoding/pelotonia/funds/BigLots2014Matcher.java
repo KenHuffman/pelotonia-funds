@@ -69,7 +69,7 @@ public class BigLots2014Matcher extends CompanyMatcher
     @Override
     public FundAdjustment getMatchingForTeamMember(TeamMember teamMember)
     {
-        if (isQualifiedForMatch(teamMember))
+        if (isEmployee(teamMember))
         {
             return getMatchingForEmployee(teamMember);
         }
@@ -85,7 +85,7 @@ public class BigLots2014Matcher extends CompanyMatcher
      *
      * @return true if member qualifies for match, false otherwise
      */
-    public boolean isQualifiedForMatch(TeamMember teamMember)
+    public boolean isEmployee(TeamMember teamMember)
     {
         String columnValue = teamMember.getAdditionalProperties().getProperty(EMPLOYEE_COLUMN.getName());
         return columnValue == null || columnValue.equalsIgnoreCase("employee");

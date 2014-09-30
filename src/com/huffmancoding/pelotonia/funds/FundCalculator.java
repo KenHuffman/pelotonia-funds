@@ -46,6 +46,7 @@ public class FundCalculator
 
         loadRosterFile(rosterFileName);
         addMatchingFundsToTeamMembers();
+        reportOfShortHighRollers();
         allocateSharableToTeamMembers();
         reportOfTeamMembers();
     }
@@ -83,12 +84,33 @@ public class FundCalculator
     }
 
     /**
+     * Report on high rollers needing to get to
+     */
+    private void reportOfShortHighRollers()
+    {
+        int highRollersShortOfCommitment = 0;
+        BigDecimal highRollersRemainingShortfall = BigDecimal.ZERO;
+
+        for (TeamMember teamMember : teamMemberList)
+        {
+            BigDecimal shortfall = teamMember.getShortfall();
+            if (shortfall.signum() > 0 && teamMember.isHighRoller())
+            {
+                ++highRollersShortOfCommitment;
+                highRollersRemainingShortfall = highRollersRemainingShortfall.add(shortfall);
+            }
+        }
+
+        FundUtils.log(highRollersShortOfCommitment + " high rollers need " + FundUtils.fmt(highRollersRemainingShortfall) + " to reach their goal ON THEIR OWN.");
+    }
+
+    /**
      * Disburse money to team members in rounds, to maximize the number of riders to commitment.
      */
-    private void allocateSharableToTeamMembers()
+    private void  allocateSharableToTeamMembers()
     {
         FundSharer sharer = new FundSharer(teamMemberList);
-        shareableFunds = sharer.allocateSharableToTeamMembers(shareableFunds);
+        shareableFunds = sharer.allocateSharableToNonHighRollers(shareableFunds);
     }
 
     /**
@@ -103,7 +125,6 @@ public class FundCalculator
         {
             BigDecimal memberCommitment = teamMember.getCommitment();
             totalCommitment = totalCommitment.add(memberCommitment);
-            System.out.println(teamMember.getFullName() + " committed " + memberCommitment.toString() +", total=" + totalCommitment.toString());
 
             BigDecimal amountRaised = teamMember.getAmountRaised();
             BigDecimal designatedFunds = amountRaised.add(teamMember.getAdjustmentTotal());

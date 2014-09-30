@@ -10,6 +10,9 @@ import java.text.DecimalFormat;
  */
 public class FundUtils
 {
+    /** the minimum a high roller must raise ON THEIR OWN. */
+    public static final BigDecimal HIGH_ROLLER_THRESHOLD = new BigDecimal(4000);
+
     /** How number should appear. */
     private static final DecimalFormat FORMAT = new DecimalFormat("$#,##0.00");
 

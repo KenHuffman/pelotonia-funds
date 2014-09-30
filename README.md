@@ -13,7 +13,5 @@ By default it does not calculate any rider matching.
 
 The program will take shared peloton funds and calculate how much to give to each rider to maximize
 the number of riders meeting their goal. It will also use funds, if necessary, from riders who have
-exceeded their goal.
-
-The current version of the program does not handle riders who are High Rollers.
-Those riders have to be removed from the spreadsheet before feeding it to this program.
+exceeded their goal. Per Pelotonia rules, it will not allow funds to be given to High Roller who have
+not me their individual goal. 

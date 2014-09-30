@@ -19,10 +19,18 @@ public abstract class CompanyMatcher
     {
         for (TeamMember teamMember : teamMemberList)
         {
-            FundAdjustment matching = getMatchingForTeamMember(teamMember);
-            if (matching != null)
+            if (teamMember.isHighRoller() && teamMember.getAmountRaised().compareTo(FundUtils.HIGH_ROLLER_THRESHOLD) < 0)
             {
-                teamMember.addAdjustment(matching);
+                FundUtils.log(teamMember.getFullName() + " cannot receive matching funds until individual " +
+                        FundUtils.fmt(FundUtils.HIGH_ROLLER_THRESHOLD) + " goal is met.");
+            }
+            else
+            {
+                FundAdjustment matching = getMatchingForTeamMember(teamMember);
+                if (matching != null)
+                {
+                    teamMember.addAdjustment(matching);
+                }
             }
         }
     }

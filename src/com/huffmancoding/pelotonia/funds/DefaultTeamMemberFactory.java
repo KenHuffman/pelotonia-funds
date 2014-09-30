@@ -21,6 +21,9 @@ public class DefaultTeamMemberFactory implements TeamMemberFactory
     private static final SpreadsheetColumn LAST_NAME_COLUMN = new SpreadsheetColumn("Last Name", true);
 
     /** header title for the column that contains team member commitment */
+    private static final SpreadsheetColumn HIGH_ROLLER_COLUMN = new SpreadsheetColumn("High Roller", false);
+
+    /** header title for the column that contains team member commitment */
     private static final SpreadsheetColumn COMMITMENT_COLUMN = new SpreadsheetColumn("Commitment", true);
 
     /** header title for the column that contains team member amount individually raised */
@@ -38,6 +41,7 @@ public class DefaultTeamMemberFactory implements TeamMemberFactory
     {
         necessaryColumns.add(FIRST_NAME_COLUMN);
         necessaryColumns.add(LAST_NAME_COLUMN);
+        necessaryColumns.add(HIGH_ROLLER_COLUMN);
         necessaryColumns.add(COMMITMENT_COLUMN);
         necessaryColumns.add(AMOUNT_RAISED_COLUMN);
         necessaryColumns.addAll(additionalColumns);
@@ -60,9 +64,15 @@ public class DefaultTeamMemberFactory implements TeamMemberFactory
     {
         String fullName = FIRST_NAME_COLUMN.getRowString(row) + " " + LAST_NAME_COLUMN.getRowString(row);
         BigDecimal commitment = COMMITMENT_COLUMN.getRowBigDecimal(row);
+        boolean isHighRoller = false;
+        if (HIGH_ROLLER_COLUMN.isHeaderFound())
+        {
+            String highRollerValue = HIGH_ROLLER_COLUMN.getRowString(row);
+            isHighRoller = highRollerValue != null && !highRollerValue.isEmpty() && !highRollerValue.equalsIgnoreCase("No");
+        }
         BigDecimal raised = AMOUNT_RAISED_COLUMN.getRowBigDecimal(row);
 
-        TeamMember teamMember = new TeamMember(fullName, commitment, raised);
+        TeamMember teamMember = new TeamMember(fullName, commitment, isHighRoller, raised);
         for (SpreadsheetColumn column : necessaryColumns)
         {
             if (column.isHeaderFound())
