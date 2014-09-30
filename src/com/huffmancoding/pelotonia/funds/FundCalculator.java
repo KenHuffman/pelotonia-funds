@@ -3,6 +3,7 @@ package com.huffmancoding.pelotonia.funds;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -21,10 +22,36 @@ public class FundCalculator
     private BigDecimal shareableFunds = BigDecimal.ZERO;
 
     /** the algorithm for determining company match. */
-    private CompanyMatcher matcher = new BigLots2014Matcher();
+    private CompanyMatcher matcher = new NonExistentCompanyMatcher();
 
     /**
-     * Constructor.
+     * Run the program.
+     *
+     * @param args the command line arguments
+     * @throws Exception in case of error
+     */
+    private void doFunding(String[] args) throws Exception
+    {
+        if (args.length < 0)
+        {
+            throw new IOException("Usage: java <jar> rosterfile.xlsx [com.huffmancoding.pelotonia.funds.BigLots2014Matcher]");
+        }
+
+        String rosterFileName = args[0]; 
+        if (args.length > 1)
+        {
+            String matcherClass = args[1];
+            matcher = (CompanyMatcher)Class.forName(matcherClass).getConstructor().newInstance();
+        }
+
+        loadRosterFile(rosterFileName);
+        addMatchingFundsToTeamMembers();
+        allocateSharableToTeamMembers();
+        reportOfTeamMembers();
+    }
+
+    /**
+     * Parse the spreadsheet of team members.
      *
      * @param rosterFileName XLSX file name in {@link SpreadsheetParser} format
      * @throws IOException in case the problem reading the file
@@ -32,12 +59,19 @@ public class FundCalculator
      */
     private void loadRosterFile(String rosterFileName) throws InvalidFormatException, IOException
     {
-        File rosterFile = new File(rosterFileName);
+        TeamMemberFactory teamMemberFactory = new DefaultTeamMemberFactory(matcher.getAdditionalColumns());
 
-        SpreadsheetParser parser = new SpreadsheetParser(rosterFile);
-        parser.loadRosterFile();
-        teamMemberList = parser.getTeamMembers();
-        shareableFunds = parser.getSharableFunds();
+        File rosterFile = new File(rosterFileName);
+        Date dateOfFile = new Date(rosterFile.lastModified());
+        FundUtils.log("Loading spreadsheet " + rosterFile.getPath() + " dated " + dateOfFile + ".");
+
+        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(rosterFile, teamMemberFactory);
+        teamMemberParser.loadSpreadsheet();
+        teamMemberList = teamMemberParser.getTeamMembers();
+
+        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(rosterFile);
+        sharableFundsParser.loadSpreadsheet();
+        shareableFunds = sharableFundsParser.getSharableFunds();
     }
 
     /**
@@ -69,6 +103,7 @@ public class FundCalculator
         {
             BigDecimal memberCommitment = teamMember.getCommitment();
             totalCommitment = totalCommitment.add(memberCommitment);
+            System.out.println(teamMember.getFullName() + " committed " + memberCommitment.toString() +", total=" + totalCommitment.toString());
 
             BigDecimal amountRaised = teamMember.getAmountRaised();
             BigDecimal designatedFunds = amountRaised.add(teamMember.getAdjustmentTotal());
@@ -127,11 +162,7 @@ public class FundCalculator
         try
         {
             FundCalculator calculator = new FundCalculator();
-
-            calculator.loadRosterFile(args[0]);
-            calculator.addMatchingFundsToTeamMembers();
-            calculator.allocateSharableToTeamMembers();
-            calculator.reportOfTeamMembers();
+            calculator.doFunding(args);
         }
         catch (Exception e)
         {

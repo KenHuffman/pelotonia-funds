@@ -3,6 +3,7 @@ package com.huffmancoding.pelotonia.funds;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Represents a person signed up on the pelotonia.org site on our team.
@@ -14,9 +15,6 @@ public class TeamMember
     /** The first and last name of the team member. */
     private final String fullName;
 
-    /** true if the team member qualifies for match. */
-    private final boolean isQualifiedForMatch;
-
     /** the amount the team member HAS to raise. */
     private final BigDecimal commitment;
 
@@ -26,6 +24,8 @@ public class TeamMember
     /** the amount the team member has been given from shared funds. */
     public List<FundAdjustment> adjustments = new ArrayList<>();
 
+    public Properties additionalProperties = new Properties(); 
+
     /**
      * Constructor.
      *
@@ -34,10 +34,9 @@ public class TeamMember
      * @param commitment commitment by rider or BigDecimal.ZERO
      * @param raised amount member has raised on his/her own
      */
-    public TeamMember(String fullName, boolean isQualifiedForMatch, BigDecimal commitment, BigDecimal raised)
+    public TeamMember(String fullName, BigDecimal commitment, BigDecimal raised)
     {
         this.fullName = fullName;
-        this.isQualifiedForMatch = isQualifiedForMatch;
         this.commitment = commitment;
         this.raised = raised;
     }
@@ -57,16 +56,6 @@ public class TeamMember
         {
             return "Volunteer " + fullName;
         }
-    }
-
-    /**
-     * Whether the team member qualifies for match.
-     *
-     * @return true if member qualifies for match, false otherwise
-     */
-    public boolean isQualifiedForMatch()
-    {
-        return isQualifiedForMatch;
     }
 
     /**
@@ -167,5 +156,15 @@ public class TeamMember
     public BigDecimal getShortfall()
     {
         return commitment.subtract(raised).subtract(getAdjustmentTotal());
+    }
+
+    public void setAdditionalProperty(String name, String value)
+    {
+        additionalProperties.setProperty(name, value);
+    }
+
+    public Properties getAdditionalProperties()
+    {
+        return additionalProperties;
     }
 }

@@ -1,5 +1,6 @@
 package com.huffmancoding.pelotonia.funds;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,7 +31,17 @@ public abstract class CompanyMatcher
      * Return the matching amount a team member should receive from the company.
      *
      * @param teamMember the member to check
-     * @return the matching amount, or null if thers is no matching for this team member
+     * @return the matching amount, or null if there's is no matching for this team member
      */
     public abstract FundAdjustment getMatchingForTeamMember(TeamMember teamMember);
+
+    /**
+     * This default company doesn't need any additional information.
+     *
+     * @return an empty list by default
+     */
+    public List<SpreadsheetColumn> getAdditionalColumns()
+    {
+        return Collections.emptyList();
+    }
 }

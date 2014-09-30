@@ -1,6 +1,7 @@
 package com.huffmancoding.pelotonia.funds;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -10,6 +11,9 @@ import java.util.List;
  */
 public class BigLots2014Matcher extends CompanyMatcher
 {
+    /** header title for the column that contains team member Employee value: "Employee" or "Family". */
+    public static final SpreadsheetColumn EMPLOYEE_COLUMN = new SpreadsheetColumn("Employee", true);
+
     /** The amount a rider must raise before receiving matching funds {@link #RIDER_MATCHING_LEVEL} */
     private static final BigDecimal RIDER_MATCHING_LEVEL = new BigDecimal(500);
 
@@ -33,6 +37,21 @@ public class BigLots2014Matcher extends CompanyMatcher
 
     /**
      * {@inheritDoc}
+     * 
+     * This matcher needs to know if the team member is an employee
+     *
+     * @return the extra column this matcher cares about
+     */
+    @Override
+    public List<SpreadsheetColumn> getAdditionalColumns()
+    {
+        return Collections.singletonList(EMPLOYEE_COLUMN);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Overridden to add logging
      */
     @Override
     public void addFundsToTeamMembers(List<TeamMember> teamMemberList)
@@ -50,7 +69,7 @@ public class BigLots2014Matcher extends CompanyMatcher
     @Override
     public FundAdjustment getMatchingForTeamMember(TeamMember teamMember)
     {
-        if (teamMember.isQualifiedForMatch())
+        if (isQualifiedForMatch(teamMember))
         {
             return getMatchingForEmployee(teamMember);
         }
@@ -59,6 +78,17 @@ public class BigLots2014Matcher extends CompanyMatcher
             FundUtils.log(teamMember.getFullName() + " is not an employee eligible for matching funds.");
             return null;
         }
+    }
+
+    /**
+     * Whether the team member qualifies for match.
+     *
+     * @return true if member qualifies for match, false otherwise
+     */
+    public boolean isQualifiedForMatch(TeamMember teamMember)
+    {
+        String columnValue = teamMember.getAdditionalProperties().getProperty(EMPLOYEE_COLUMN.getName());
+        return columnValue == null || columnValue.equalsIgnoreCase("employee");
     }
 
     /**
