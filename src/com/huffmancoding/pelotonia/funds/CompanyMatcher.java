@@ -11,7 +11,7 @@ import java.util.List;
 public abstract class CompanyMatcher
 {
     /**
-     * Add money from the company to team members who have reached their fundraising criteria.
+     * Add money from the company to team members who have reached some fundraising criteria.
      *
      * @param teamMemberList list of team members to add funds to
      */
@@ -19,10 +19,10 @@ public abstract class CompanyMatcher
     {
         for (TeamMember teamMember : teamMemberList)
         {
-            if (teamMember.isHighRoller() && teamMember.getAmountRaised().compareTo(FundUtils.HIGH_ROLLER_THRESHOLD) < 0)
+            if (teamMember.isHighRoller() && teamMember.getAmountRaised().compareTo(teamMember.getCommitment()) < 0)
             {
                 FundUtils.log(teamMember.getFullName() + " cannot receive matching funds until individual " +
-                        FundUtils.fmt(FundUtils.HIGH_ROLLER_THRESHOLD) + " goal is met.");
+                        FundUtils.fmt(teamMember.getCommitment()) + " goal is met.");
             }
             else
             {

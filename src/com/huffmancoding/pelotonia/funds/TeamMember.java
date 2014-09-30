@@ -106,6 +106,11 @@ public class TeamMember
      */
     public void addAdjustment(FundAdjustment newAdjustment)
     {
+        if (isHighRoller && raised.compareTo(commitment) < 0)
+        {
+            throw new AssertionError("Cannot add or remove funds from " + getFullName() + " until individual goal is met.");
+        }
+
         if (newAdjustment.getAmount().signum() != 0)
         {
             String newReason = newAdjustment.getReason();
@@ -124,11 +129,11 @@ public class TeamMember
                     {
                         adjustments.set(i, new FundAdjustment(newReason, combinedAmount));
                     }
-    
+
                     return;
                 }
             }
-    
+
             adjustments.add(newAdjustment);
         }
     }
