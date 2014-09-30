@@ -20,7 +20,7 @@ public class DefaultTeamMemberFactory implements TeamMemberFactory
     /** header title for the column that contains team member last name */
     private static final SpreadsheetColumn LAST_NAME_COLUMN = new SpreadsheetColumn("Last Name", true);
 
-    /** header title for the column that contains team member commitment */
+    /** header title for the column that contains the high roller flag "Yes" */
     private static final SpreadsheetColumn HIGH_ROLLER_COLUMN = new SpreadsheetColumn("High Roller", false);
 
     /** header title for the column that contains team member commitment */

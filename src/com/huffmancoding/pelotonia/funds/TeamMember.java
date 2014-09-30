@@ -33,8 +33,8 @@ public class TeamMember
      * Constructor.
      *
      * @param fullName first and last name of team member
-     * @param isQualifiedForMatch whether the team member is an employee
      * @param commitment commitment by rider or BigDecimal.ZERO
+     * @param isHighRoller whether the team member is a high roller
      * @param raised amount member has raised on his/her own
      */
     public TeamMember(String fullName, BigDecimal commitment, boolean isHighRoller, BigDecimal raised)

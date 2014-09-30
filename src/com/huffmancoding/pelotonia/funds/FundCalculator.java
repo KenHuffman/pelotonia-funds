@@ -107,7 +107,7 @@ public class FundCalculator
     /**
      * Disburse money to team members in rounds, to maximize the number of riders to commitment.
      */
-    private void  allocateSharableToTeamMembers()
+    private void allocateSharableToTeamMembers()
     {
         FundSharer sharer = new FundSharer(teamMemberList);
         shareableFunds = sharer.allocateSharableToNonHighRollers(shareableFunds);
