@@ -149,6 +149,24 @@ public class TeamMember
     }
 
     /**
+     * Return the amount of an adjust for a particular reason
+     * @param reason the reason to search for
+     * @return the amount or ZERO if there is none
+     */
+    public BigDecimal findAdjustmentAmount(String reason)
+    {
+        for (FundAdjustment adjustment : adjustments)
+        {
+            if (adjustment.getReason().equals(reason))
+            {
+                return adjustment.getAmount();
+            }
+        }
+
+        return BigDecimal.ZERO;
+    }
+
+    /**
      * Return the total of all current adjustments.
      *
      * @return the total

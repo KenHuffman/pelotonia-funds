@@ -2,6 +2,8 @@ package com.huffmancoding.pelotonia.funds;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -13,6 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FundSharer
 {
+    private static final String TO_TEAMMATE_REASON = "To teammate";
+
+    private static final String FROM_TEAMMATE_REASON = "From teammate";
+
     /** the list of team members on the company's team, includes volunteers and non-employees */
     private final List<TeamMember> teamMemberList;
 
@@ -41,6 +47,43 @@ public class FundSharer
 
         AtomicBoolean usedExcessFromMembers = new AtomicBoolean(false);
 
+        int ridersShortCount = doFundingRounds(usedExcessFromMembers);
+        if (ridersShortCount == 0)
+        {
+            // every reached goals
+            FundUtils.log("Every rider has now reached their goal, with leftover sharable funds of " + FundUtils.fmt(shareableFunds) + ".");
+
+            if (usedExcessFromMembers.get() && shareableFunds.signum() > 0)
+            {
+                // return remainder of sharable funds back to those we borrowed it from. 
+                returnUnusedPelotonShareableToSharers();
+            }
+            else
+            {
+                FundUtils.log("Did not have to shift funds from members who exceeded their goal.");
+            }
+        }
+        else
+        {
+            FundUtils.log("Shareable funds are now exhausted. " + ridersShortCount + " riders have not reached their goal.");
+        }
+
+        if (usedExcessFromMembers.get())
+        {
+            assignSharersToReceivers();
+        }
+
+        return shareableFunds;
+    }
+
+    /**
+     * Perform funding rounds using peloton money, or if necessary, other riders.
+     *
+     * @param usedExcessFromMembers set true if money from "rich" members is necessary for other riders
+     * @return the number of riders who can't reach their goal, even with assistance.
+     */
+    private int doFundingRounds(AtomicBoolean usedExcessFromMembers)
+    {
         List<TeamMember> membersWithShortfall;
         for (int round = 1; ! (membersWithShortfall = findNonHighRollersShortOfCommitment()).isEmpty(); ++round)
         {
@@ -54,25 +97,11 @@ public class FundSharer
             FundUtils.log("Funding round " + round + " has sharable team funds of " + FundUtils.fmt(shareableFunds) +
                     ", giving " + FundUtils.fmt(perMember) + " to " + membersWithShortfall.size() + " underfunded rider(s).");
 
-            moveFromPelotonToMembers(perMember, membersWithShortfall);
+            String sharedReason = (usedExcessFromMembers.get() ? FROM_TEAMMATE_REASON : "From peloton");
+            moveSharedToMembers(sharedReason, perMember, membersWithShortfall);
         }
 
-        if (membersWithShortfall.isEmpty())
-        {
-            // every reached goals
-            FundUtils.log("Every rider has now reached their goal, with leftover sharable funds of " + FundUtils.fmt(shareableFunds) + ".");
-
-            if (!usedExcessFromMembers.get())
-            {
-                FundUtils.log("Did not have to shift funds from members who exceeded their goal.");
-            }
-        }
-        else
-        {
-            FundUtils.log("Shareable funds are now exhausted. " + membersWithShortfall.size() + " riders have not reached their goal.");
-        }
-
-        return shareableFunds;
+        return membersWithShortfall.size();
     }
 
     /**
@@ -97,7 +126,7 @@ public class FundSharer
             }
         }
 
-        FundUtils.log(ridersShortOfCommitment + " (non-high roller) riders need " + FundUtils.fmt(totalRemainingShortfall) + " to reach their goal.");
+        FundUtils.log(ridersShortOfCommitment + " riders need " + FundUtils.fmt(totalRemainingShortfall) + " to reach their goal.");
 
         return membersWithShortfall;
     }
@@ -106,7 +135,7 @@ public class FundSharer
      * Get the funding amount for the round, using money if available and necessary from other members.
      *
      * @param membersWithShortfall riders needing money
-     * @param usedExcessFromMembers whether we have already borrowed money from members beyond their commitment
+     * @param usedExcessFromMembers set true if money from "rich" members is necessary for other riders
      * @return the amount to give this round to members needing money
      */
     private BigDecimal calculateFundingRoundAmount(List<TeamMember> membersWithShortfall, AtomicBoolean usedExcessFromMembers)
@@ -120,7 +149,7 @@ public class FundSharer
             if (! usedExcessFromMembers.getAndSet(true))
             {
                 FundUtils.log("Initial shared funds are exhausted, now checking for members have gone beyond their goal for fund sharing.");
-                addBeyondCommitmentToSharable();
+                addSharersFundsToPelotonShareable();
 
                 // try again to see if we have money to give, now that we have used money from other riders
                 perMember = pickSmallestShortfallOrEvenSplit(closestToCommitment, membersWithShortfall);
@@ -173,27 +202,10 @@ public class FundSharer
     }
 
     /**
-     * Give an equal amount of money to all rider needing money. No rider will be given more than he needs to reach their commitment.
-     * 
-     * @param perMember the amount to give to each rider
-     * @param membersWithShortfall the riders needing more money
-     */
-    private void moveFromPelotonToMembers(BigDecimal perMember, List<TeamMember> membersWithShortfall)
-    {
-        for (TeamMember teamMember : membersWithShortfall)
-        {
-            moveFromPeloton(teamMember, new FundAdjustment("Funds from peloton", perMember));
-        }
-    }
-
-    /**
      * Add to the sharable funds moneys from non-riders and riders who have exceeded their individual commitment.
-     * This function can be called before {@link #allocateSharableToTeamMembers()} if the initial shared funds
-     * are not sufficient for everyone on the team to reach their commitment.
-     *
-     * @return the amount borrowed from over-achieving riders
+     * This function can be called if the initial shared funds are not sufficient for everyone on the team to reach their commitment.
      */
-    private BigDecimal addBeyondCommitmentToSharable()
+    private void addSharersFundsToPelotonShareable()
     {
         int memberCount = 0;
 
@@ -201,18 +213,14 @@ public class FundSharer
         for (TeamMember teamMember : teamMemberList)
         {
             BigDecimal excess = teamMember.getShortfall().negate();
-            String excessCalculation = FundUtils.fmt(teamMember.getAmountRaised().add(teamMember.getAdjustmentTotal())) +
-                    " - " + FundUtils.fmt(teamMember.getCommitment());
-
             if (excess.signum() > 0)
             {
                 ++memberCount;
 
                 totalAmountSharedByMembers = totalAmountSharedByMembers.add(excess);
 
-                FundUtils.log(teamMember.getFullName() + " contributing excess funds of " + FundUtils.fmt(excess) +
-                        " (" + excessCalculation + ") to the team.");
-                moveFromPeloton(teamMember, new FundAdjustment("Shared with team", excess.negate()));
+                FundUtils.log(teamMember.getFullName() + " can contribute excess funds of " + FundUtils.fmt(excess) + " to the team.");
+                moveFromShared(teamMember, new FundAdjustment(TO_TEAMMATE_REASON, excess.negate()));
             }
         }
 
@@ -223,11 +231,174 @@ public class FundSharer
         }
         else
         {
-            FundUtils.log(memberCount + " members have contributed " + FundUtils.fmt(totalAmountSharedByMembers) + " back to the peloton.");
+            FundUtils.log(memberCount + " members can contribute " + FundUtils.fmt(totalAmountSharedByMembers) + " back to the peloton.");
             FundUtils.log("Shareable peloton funds now " + FundUtils.fmt(shareableFunds) + ".");
         }
+    }
 
-        return totalAmountSharedByMembers;
+    /**
+     * Compare TeamMembers by the amount of a particular adjustment
+     */
+    private class TeamMemberAdjustmentComparator implements Comparator<TeamMember>
+    {
+        // the adjustment reason to sort on
+        private final String reasonForCompare;
+
+        /**
+         * Constructor.
+         *
+         * @param reason the adjustment reason to sort on
+         */
+        public TeamMemberAdjustmentComparator(String reason)
+        {
+            reasonForCompare = reason;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int compare(TeamMember member1, TeamMember member2)
+        {
+            BigDecimal adjustmentAmount1 = member1.findAdjustmentAmount(reasonForCompare);
+            BigDecimal adjustmentAmount2 = member2.findAdjustmentAmount(reasonForCompare);
+            return adjustmentAmount1.compareTo(adjustmentAmount2);
+        }
+    }
+
+    /**
+     * If there are team funds that were borrowed from riders but were not necessary for
+     * everyone to reach there goal, then return the unused funds to those least over their goal.
+     */
+    private void returnUnusedPelotonShareableToSharers()
+    {
+        FundUtils.log("Not using " + FundUtils.fmt(shareableFunds) + " from riders who can share.");
+
+        List<TeamMember> sharersSortedByAmountShared = findSharers();
+        while (! sharersSortedByAmountShared.isEmpty() && shareableFunds.signum() > 0)
+        {
+            BigDecimal perMember = shareableFunds.divide(new BigDecimal(sharersSortedByAmountShared.size()), BigDecimal.ROUND_DOWN);
+
+            TeamMember leastSharer = sharersSortedByAmountShared.get(sharersSortedByAmountShared.size() - 1);
+            BigDecimal leastSharedAmount = leastSharer.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
+
+            perMember = perMember.min(leastSharedAmount);
+            if (perMember.signum() == 0)
+            {
+                break;
+            }
+
+            moveSharedToMembers(TO_TEAMMATE_REASON, perMember, sharersSortedByAmountShared);
+
+            // remove those sharers who were given back all the money we borrowed
+            while (leastSharer.findAdjustmentAmount(TO_TEAMMATE_REASON).signum() == 0)
+            {
+                sharersSortedByAmountShared.remove(sharersSortedByAmountShared.size()-1);
+
+                leastSharer = sharersSortedByAmountShared.get(sharersSortedByAmountShared.size() - 1);
+            }
+        }
+
+        // handle what's left over (which is less that $1 per sharer)
+        while (shareableFunds.signum() > 0)
+        {
+            TeamMember leastSharer = sharersSortedByAmountShared.remove(sharersSortedByAmountShared.size() - 1);
+            moveFromShared(leastSharer, new FundAdjustment(TO_TEAMMATE_REASON, shareableFunds.min(BigDecimal.ONE)));
+        }
+    }
+
+    /**
+     * Assign givers and takers to each specific fund swap by changing the generic
+     * {@link #FROM_TEAMMATE_REASON} and {@link #TO_TEAMMATE_REASON} reasons to specific members.
+     */
+    private void assignSharersToReceivers()
+    {
+        List<TeamMember> sharers = findSharers();
+        for (TeamMember sharingMember : sharers)
+        {
+            BigDecimal shared = sharingMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
+            FundUtils.log(sharingMember.getFullName() + " will share " + FundUtils.fmt(shared) + " with teammates.");
+        }
+
+        TeamMember sharingMember = sharers.remove(0);
+
+        for (TeamMember needingMember : teamMemberList)
+        {
+            // see if this teamMember was promised money from a teammate
+            BigDecimal fromTeammate;
+            while ((fromTeammate = needingMember.findAdjustmentAmount(FROM_TEAMMATE_REASON)).signum() > 0)
+            {
+                // find money from the current sharer
+                BigDecimal sharingAvailAmount = sharingMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
+                if (sharingAvailAmount.signum() == 0)
+                {
+                    // shareIndex has run out of money, go to next sharer and try again
+                    sharingMember = sharers.remove(0);
+                }
+                else
+                {
+                    // transfer either the what the needs is or only whatever the sharer has
+                    fromTeammate = fromTeammate.min(sharingAvailAmount);
+
+                    // Change generic "To teammate" to "To Rider Orphan Annie"
+                    changeAdjustmentReason(sharingMember, TO_TEAMMATE_REASON, "To " + needingMember.getFullName(), fromTeammate.negate());
+
+                    // Change generic "From teammate" to "From Rider Daddy Warbucks"
+                    changeAdjustmentReason(needingMember, FROM_TEAMMATE_REASON, "From " + sharingMember.getFullName(), fromTeammate);
+                }
+            }
+        }
+    }
+
+    /**
+     * Rename the reason for some funds. This does not change the amount of money for the TeamMember.
+     *
+     * @param teamMember the team member with adjustments
+     * @param fromReason the old adjustment reason
+     * @param toReason the new adjustment reason
+     * @param amount the amount to move
+     */
+    private void changeAdjustmentReason(TeamMember teamMember, String fromReason, String toReason, BigDecimal amount)
+    {
+        teamMember.addAdjustment(new FundAdjustment(fromReason, amount.negate()));
+        teamMember.addAdjustment(new FundAdjustment(toReason, amount));
+    }
+
+    /**
+     * Return the list of people who have shared to their team mates.
+     *
+     * @return list of people who have shared to their team mates in most-shared order.
+     */
+    private List<TeamMember> findSharers()
+    {
+        List<TeamMember> sharers = new ArrayList<>();
+        for (TeamMember teamMember : teamMemberList)
+        {
+            BigDecimal sharedWithTeam = teamMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
+            if (sharedWithTeam.signum() > 0)
+            {
+                sharers.add(teamMember);
+            }
+        }
+
+        Collections.sort(sharers, new TeamMemberAdjustmentComparator(TO_TEAMMATE_REASON));
+
+        return sharers;
+    }
+
+    /**
+     * Give an equal amount of money to a group of riders
+     *
+     * @param sharedReason the reason for sharing
+     * @param perMember the amount to give to each rider
+     * @param membersForFunds the riders receiving funds
+     */
+    private void moveSharedToMembers(String sharedReason, BigDecimal perMember, List<TeamMember> membersForFunds)
+    {
+        for (TeamMember teamMember : membersForFunds)
+        {
+            moveFromShared(teamMember, new FundAdjustment(sharedReason, perMember));
+        }
     }
 
     /**
@@ -236,7 +407,7 @@ public class FundSharer
      * @param teamMember the one receiving the funds
      * @param adjustment to move
      */
-    public void moveFromPeloton(TeamMember teamMember, FundAdjustment adjustment)
+    public void moveFromShared(TeamMember teamMember, FundAdjustment adjustment)
     {
         shareableFunds = shareableFunds.subtract(adjustment.getAmount());
         teamMember.addAdjustment(adjustment);
