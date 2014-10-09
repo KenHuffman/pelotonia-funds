@@ -13,9 +13,9 @@ import org.apache.poi.ss.usermodel.Row;
  *
  * The XLSX format should be (it may have additional ignored columns after the first column):
  * 
- * "Fund Source","Amount","Fund Type"
- * source1,amount1,{"Additional"|...}
- * source2,amount2,{"Additional"|...}
+ * "Fund Type","Fund Source","Amount",
+ * {"Additional"|...},source1,amount1
+ * {"Additional"|...},source2,amount2
  * ...
  *
  * @author khuffman
