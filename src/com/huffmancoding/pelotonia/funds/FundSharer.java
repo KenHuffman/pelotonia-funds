@@ -53,10 +53,13 @@ public class FundSharer
             // every reached goals
             FundUtils.log("Every rider has now reached their goal, with leftover sharable funds of " + FundUtils.fmt(shareableFunds) + ".");
 
-            if (usedExcessFromMembers.get() && shareableFunds.signum() > 0)
+            if (usedExcessFromMembers.get())
             {
-                // return remainder of sharable funds back to those we borrowed it from. 
-                returnUnusedPelotonShareableToSharers();
+                if (shareableFunds.signum() > 0)
+                {
+                    // return remainder of sharable funds back to those we borrowed it from. 
+                    returnUnusedPelotonShareableToSharers();
+                }
             }
             else
             {
