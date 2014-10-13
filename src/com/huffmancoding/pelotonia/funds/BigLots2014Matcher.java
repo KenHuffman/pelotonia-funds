@@ -1,19 +1,15 @@
 package com.huffmancoding.pelotonia.funds;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Match rider and volunteer funds according to the year's matching policy.
+ * Match rider and volunteer funds according to Big Lots 2014 matching policy.
  * 
  * @author khuffman
  */
-public class BigLots2014Matcher extends CompanyMatcher
+public class BigLots2014Matcher extends EmployeeOnlyMatcher
 {
-    /** header title for the column that contains team member Employee value: "Employee" or "Family". */
-    public static final SpreadsheetColumn EMPLOYEE_COLUMN = new SpreadsheetColumn("Employee", true);
-
     /** The amount a rider must raise before receiving matching funds {@link #RIDER_MATCHING_LEVEL} */
     private static final BigDecimal RIDER_MATCHING_LEVEL = new BigDecimal(500);
 
@@ -37,19 +33,6 @@ public class BigLots2014Matcher extends CompanyMatcher
 
     /**
      * {@inheritDoc}
-     * 
-     * This matcher needs to know if the team member is an employee
-     *
-     * @return the extra column this matcher cares about
-     */
-    @Override
-    public List<SpreadsheetColumn> getAdditionalColumns()
-    {
-        return Collections.singletonList(EMPLOYEE_COLUMN);
-    }
-
-    /**
-     * {@inheritDoc}
      *
      * Overridden to add logging
      */
@@ -67,37 +50,7 @@ public class BigLots2014Matcher extends CompanyMatcher
      * {@inheritDoc}
      */
     @Override
-    public FundAdjustment getMatchingForTeamMember(TeamMember teamMember)
-    {
-        if (isEmployee(teamMember))
-        {
-            return getMatchingForEmployee(teamMember);
-        }
-        else
-        {
-            FundUtils.log(teamMember.getFullName() + " is not an employee eligible for matching funds.");
-            return null;
-        }
-    }
-
-    /**
-     * Whether the team member qualifies for match.
-     *
-     * @return true if member qualifies for match, false otherwise
-     */
-    public boolean isEmployee(TeamMember teamMember)
-    {
-        String columnValue = teamMember.getAdditionalProperties().getProperty(EMPLOYEE_COLUMN.getName());
-        return columnValue == null || columnValue.equalsIgnoreCase("employee");
-    }
-
-    /**
-     * Return the matching amount an employee should receive from the company.
-     * 
-     * @param teamMember the member to check
-     * @return either a rider or volunteer match
-     */
-    private FundAdjustment getMatchingForEmployee(TeamMember teamMember)
+    public FundAdjustment getMatchingForEmployee(TeamMember teamMember)
     {
         if (teamMember.isRider())
         {
