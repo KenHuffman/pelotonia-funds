@@ -159,17 +159,17 @@ public class FundCalculator
         }
 
         FundUtils.log(ridersMakingCommitment + " of " + ridersWithCommitment + " riders have reached their goal.");
-        FundUtils.log("Team BIG committed to raise " + FundUtils.fmt(totalCommitment) + ".");
-        FundUtils.log("Team BIG has raised " + FundUtils.fmt(totalRaised) + ".");
+        FundUtils.log("The team committed to raise " + FundUtils.fmt(totalCommitment) + ".");
+        FundUtils.log("The team has raised " + FundUtils.fmt(totalRaised) + ".");
 
         BigDecimal overage = totalRaised.subtract(totalCommitment);
         if (overage.signum() < 0)
         {
-            FundUtils.log("Team BIG needs to raise " + FundUtils.fmt(overage.negate()) + ".");
+            FundUtils.log("The team needs to raise " + FundUtils.fmt(overage.negate()) + ".");
         }
         else
         {
-            FundUtils.log("Team BIG has exceeded our goal by " + FundUtils.fmt(overage) + ".");
+            FundUtils.log("The team has exceeded their goal by " + FundUtils.fmt(overage) + ".");
         }
     }
 

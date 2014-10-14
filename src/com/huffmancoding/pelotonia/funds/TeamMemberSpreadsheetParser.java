@@ -68,7 +68,7 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
             throw new InvalidFormatException("Roster file does not have any valid rider IDs below '" + RIDER_ID_COLUMN.getName() + "' header");
         }
 
-        FundUtils.log("There are " + teamMemberList.size() + " Team BIG members.");
+        FundUtils.log("There are " + teamMemberList.size() + " team members.");
         FundUtils.log("Initial individually raised funds: " + FundUtils.fmt(initialAmountRaised) + ".");
     }
 
