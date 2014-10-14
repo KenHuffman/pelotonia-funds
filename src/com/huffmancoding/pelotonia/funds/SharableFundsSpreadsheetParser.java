@@ -34,6 +34,11 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
     /** the running total of the {@link #fundAmountColumn}. */
     private BigDecimal shareableFunds = BigDecimal.ZERO;
 
+    /**
+     * Constructor.
+     *
+     * @param file the spreadsheet to read
+     */
     public SharableFundsSpreadsheetParser(File file)
     {
         super(file);

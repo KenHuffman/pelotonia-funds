@@ -51,7 +51,7 @@ public abstract class EmployeeOnlyMatcher extends CompanyMatcher
      */
     public boolean isEmployee(TeamMember teamMember)
     {
-        String columnValue = teamMember.getAdditionalProperties().getProperty(EMPLOYEE_COLUMN.getName());
+        String columnValue = teamMember.getAdditionalProperty(EMPLOYEE_COLUMN.getName());
         return columnValue == null || columnValue.equalsIgnoreCase("employee");
     }
 

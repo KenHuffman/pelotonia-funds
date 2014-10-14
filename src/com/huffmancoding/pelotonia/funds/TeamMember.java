@@ -202,13 +202,25 @@ public class TeamMember
         return commitment.subtract(raised).subtract(getAdjustmentTotal());
     }
 
+    /**
+     * Set properties on this team member from additional columns in the spreadsheet.
+     *
+     * @param name the name of the column
+     * @param value the value for the column
+     */
     public void setAdditionalProperty(String name, String value)
     {
         additionalProperties.setProperty(name, value);
     }
 
-    public Properties getAdditionalProperties()
+    /**
+     * Get the property value for a spreadsheet column.
+     *
+     * @param name the name to retrieve
+     * @return the value for the property name
+     */
+    public String getAdditionalProperty(String name)
     {
-        return additionalProperties;
+        return additionalProperties.getProperty(name);
     }
 }

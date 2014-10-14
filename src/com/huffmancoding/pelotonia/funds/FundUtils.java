@@ -28,6 +28,11 @@ public class FundUtils
         }
     }
 
+    /**
+     * Log a message to the output.
+     *
+     * @param message the message to log
+     */
     public static void log(String message)
     {
         System.out.println(message);

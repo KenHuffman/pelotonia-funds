@@ -60,7 +60,7 @@ public class FundCalculator
      */
     private void loadRosterFile(String rosterFileName) throws InvalidFormatException, IOException
     {
-        TeamMemberFactory teamMemberFactory = new DefaultTeamMemberFactory(matcher.getAdditionalColumns());
+        TeamMemberFactory teamMemberFactory = new TeamMemberFactory(matcher.getAdditionalColumns());
 
         File rosterFile = new File(rosterFileName);
         Date dateOfFile = new Date(rosterFile.lastModified());

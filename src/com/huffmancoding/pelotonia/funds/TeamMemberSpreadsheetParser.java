@@ -57,6 +57,9 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
         return teamMemberList;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void loadSpreadsheet() throws IOException, InvalidFormatException
     {
@@ -72,6 +75,9 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
         FundUtils.log("Initial individually raised funds: " + FundUtils.fmt(initialAmountRaised) + ".");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void parseObjectRow(Row row) throws InvalidFormatException
     {
