@@ -20,9 +20,10 @@ Since the spreadsheet from the Peloton Member Information page does not
 reflect the peloton donations, the program will look at the input spreadsheet
 for three additional column after of the rider section for peloton funds:
 
-"Fund Type","Fund Source","Amount"
-"Additional","Bake Sale",1000.00
-"Additional","Sponsor X Donation",800.00
+"Fund Type" | "Fund Source" | "Amount"
+--------- | ----------- | ------
+"Additional" | Bake Sale | 1000.00
+"Additional" | Sponsor X Donation | 800.00
 
 Those specific headers (e.g. Fund Type", "Fund Source", and "Amount")
 must match exactly in the spreadsheet as well as "Additional" on each
