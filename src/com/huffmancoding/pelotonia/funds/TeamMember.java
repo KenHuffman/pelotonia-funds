@@ -223,4 +223,13 @@ public class TeamMember
     {
         return additionalProperties.getProperty(name);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+        return getFullName();
+    }
 }

@@ -128,7 +128,7 @@ public class FundCalculator
 
             BigDecimal amountRaised = teamMember.getAmountRaised();
             BigDecimal designatedFunds = amountRaised.add(teamMember.getAdjustmentTotal());
-            if (designatedFunds.signum() > 0)
+            if (teamMember.isRider() || designatedFunds.signum() > 0)
             {
                 String reportLine = teamMember.getFullName() + " has " + FundUtils.fmt(designatedFunds);
                 if (teamMember.isRider())

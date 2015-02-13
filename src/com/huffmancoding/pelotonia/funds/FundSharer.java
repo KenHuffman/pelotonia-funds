@@ -317,6 +317,11 @@ public class FundSharer
     private void assignSharersToReceivers()
     {
         List<TeamMember> sharers = findSharers();
+        if (sharers.isEmpty())
+        {
+            return;
+        }
+
         for (TeamMember sharingMember : sharers)
         {
             BigDecimal shared = sharingMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
