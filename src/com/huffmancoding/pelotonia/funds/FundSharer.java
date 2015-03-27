@@ -74,6 +74,7 @@ public class FundSharer
         if (usedExcessFromMembers.get())
         {
             assignSharersToReceivers();
+            //reclaimSharersUnassigned();
         }
 
         return shareableFunds;
@@ -91,17 +92,27 @@ public class FundSharer
         for (int round = 1; ! (membersWithShortfall = findNonHighRollersShortOfCommitment()).isEmpty(); ++round)
         {
             BigDecimal perMember = calculateFundingRoundAmount(membersWithShortfall, usedExcessFromMembers);
+
+            List<TeamMember> membersReceivingMoneyThisRound = membersWithShortfall;
             if (perMember.signum() == 0)
             {
-                // we have so little shared funds, that we cannot even give a buck to each rider
-                break;
+                // we have so little shared funds, that we cannot even give a penny to each rider
+                perMember = new BigDecimal("0.01"); // a penny
+                int pennyCount = shareableFunds.divide(perMember).intValue();
+                if (pennyCount == 0)
+                {
+                    break;
+                }
+
+                // give a penny to some riders
+                membersReceivingMoneyThisRound = membersWithShortfall.subList(0, pennyCount);
             }
 
             FundUtils.log("Funding round " + round + " has sharable team funds of " + FundUtils.fmt(shareableFunds) +
-                    ", giving " + FundUtils.fmt(perMember) + " to " + membersWithShortfall.size() + " underfunded rider(s).");
+                    ", giving " + FundUtils.fmt(perMember) + " to " + membersReceivingMoneyThisRound.size() + " underfunded rider(s).");
 
             String sharedReason = (usedExcessFromMembers.get() ? FROM_TEAMMATE_REASON : "From peloton");
-            moveSharedToMembers(sharedReason, perMember, membersWithShortfall);
+            moveSharedToMembers(sharedReason, perMember, membersReceivingMoneyThisRound);
         }
 
         return membersWithShortfall.size();

@@ -7,6 +7,10 @@ import java.math.BigDecimal;
  *
  * @author khuffman
  */
+/**
+ * @author khuffman
+ *
+ */
 public class FundAdjustment
 {
     /** the reason why the team member has this adjustment. */
@@ -45,5 +49,14 @@ public class FundAdjustment
     public BigDecimal getAmount()
     {
         return amount;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+        return reason + ": " + FundUtils.fmt(amount);
     }
 }

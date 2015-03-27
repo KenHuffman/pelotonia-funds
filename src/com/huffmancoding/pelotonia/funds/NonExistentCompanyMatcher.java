@@ -4,6 +4,7 @@
 package com.huffmancoding.pelotonia.funds;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * This is the default fund matcher that doesn't give money to anyone.
@@ -13,6 +14,14 @@ import java.util.List;
  */
 public class NonExistentCompanyMatcher extends CompanyMatcher
 {
+    /**
+     * {@inheritDoc}
+     */
+    public NonExistentCompanyMatcher(Properties properties) throws Exception
+    {
+        super(properties);
+    }
+
     /**
      * {@inheritDoc}
      */

@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Row;
 
 /**
  * This is a column in the roster file that has a header title an values for each team member
+ *
  * @author khuffman
  */
 public class SpreadsheetColumn
@@ -111,7 +112,7 @@ public class SpreadsheetColumn
             return cell.getStringCellValue();
 
         case Cell.CELL_TYPE_NUMERIC:
-            return getRowBigDecimal(row).toPlainString();
+            return new BigDecimal(cell.getNumericCellValue()).toPlainString();
 
         default:
             return null;
@@ -139,6 +140,19 @@ public class SpreadsheetColumn
         {
         case Cell.CELL_TYPE_NUMERIC:
             return new BigDecimal(cell.getNumericCellValue());
+
+        case Cell.CELL_TYPE_STRING:
+            String stringCellValue = cell.getStringCellValue();
+            if (stringCellValue.charAt(0) == '$')
+            {
+                stringCellValue = stringCellValue.substring(1);
+                int dot = stringCellValue.indexOf('.');
+                if (dot >= 0 && stringCellValue.length() > dot + 3)
+                {
+                    stringCellValue = stringCellValue.substring(0, dot + 3);
+                }
+            }
+            return new BigDecimal(stringCellValue);
 
         default:
             return BigDecimal.ZERO;

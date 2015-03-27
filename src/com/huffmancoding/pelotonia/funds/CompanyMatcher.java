@@ -1,7 +1,7 @@
 package com.huffmancoding.pelotonia.funds;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * The interface for a company to match the fundraising raised individually.
@@ -10,6 +10,21 @@ import java.util.List;
  */
 public abstract class CompanyMatcher
 {
+    final Properties properties;
+    
+    /**
+     * @param properties the properties necessary for configuring the match algorithm
+     */
+    public CompanyMatcher(Properties properties) throws Exception
+    {
+        this.properties = properties;
+    }
+
+    public Properties getProperties()
+    {
+        return properties;
+    }
+
     /**
      * Add money from the company to team members who have reached some fundraising criteria.
      *
@@ -22,7 +37,7 @@ public abstract class CompanyMatcher
             if (teamMember.isHighRoller() && teamMember.getAmountRaised().compareTo(teamMember.getCommitment()) < 0)
             {
                 FundUtils.log(teamMember.getFullName() + " cannot receive matching funds until individual " +
-                        FundUtils.fmt(teamMember.getCommitment()) + " goal is met.");
+                        FundUtils.fmt(teamMember.getCommitment()) + " high roller goal is met.");
             }
             else
             {
@@ -42,14 +57,4 @@ public abstract class CompanyMatcher
      * @return the matching amount, or null if there's is no matching for this team member
      */
     public abstract FundAdjustment getMatchingForTeamMember(TeamMember teamMember);
-
-    /**
-     * This default company doesn't need any additional information.
-     *
-     * @return an empty list by default
-     */
-    public List<SpreadsheetColumn> getAdditionalColumns()
-    {
-        return Collections.emptyList();
-    }
 }

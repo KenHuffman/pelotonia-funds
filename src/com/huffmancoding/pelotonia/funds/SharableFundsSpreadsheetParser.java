@@ -1,8 +1,8 @@
 package com.huffmancoding.pelotonia.funds;
 
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URL;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -37,11 +37,11 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
     /**
      * Constructor.
      *
-     * @param file the spreadsheet to read
+     * @param url the spreadsheet to read
      */
-    public SharableFundsSpreadsheetParser(File file)
+    public SharableFundsSpreadsheetParser(URL url)
     {
-        super(file);
+        super(url);
     }
 
     /**
@@ -55,12 +55,14 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
     }
 
     /**
-     * {@inheritDoc}
+     * Load the spreadsheet containing sharable funds
+     *
+     * @throws IOException in case the problem reading the file
+     * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    @Override
-    public void loadSpreadsheet() throws IOException, InvalidFormatException
+    public void loadFundsSpreadsheet(String sheetName) throws IOException, InvalidFormatException
     {
-        super.loadSpreadsheet();
+        super.loadSpreadsheet(sheetName);
 
         FUND_SOURCE_COLUMN.checkHeaderFound();
 

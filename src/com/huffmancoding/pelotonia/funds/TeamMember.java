@@ -3,7 +3,6 @@ package com.huffmancoding.pelotonia.funds;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Represents a person signed up on the pelotonia.org site on our team.
@@ -12,8 +11,14 @@ import java.util.Properties;
  */
 public class TeamMember
 {
+    /** The rider id of the team member. */
+    private final String riderId;
+
     /** The first and last name of the team member. */
     private final String fullName;
+
+    /** the member's role. */
+    private final String participant;
 
     /** the amount the team member HAS to raise. */
     private final BigDecimal commitment;
@@ -27,8 +32,6 @@ public class TeamMember
     /** the amount the team member has been given from shared funds. */
     public List<FundAdjustment> adjustments = new ArrayList<>();
 
-    public Properties additionalProperties = new Properties(); 
-
     /**
      * Constructor.
      *
@@ -37,12 +40,19 @@ public class TeamMember
      * @param isHighRoller whether the team member is a high roller
      * @param raised amount member has raised on his/her own
      */
-    public TeamMember(String fullName, BigDecimal commitment, boolean isHighRoller, BigDecimal raised)
+    public TeamMember(String riderId, String fullName, String participant, BigDecimal commitment, boolean isHighRoller, BigDecimal raised)
     {
+        this.riderId = riderId;
         this.fullName = fullName;
+        this.participant = participant;
         this.commitment = commitment;
         this.isHighRoller = isHighRoller;
         this.raised = raised;
+    }
+
+    public String getRiderId()
+    {
+        return riderId;
     }
 
     /**
@@ -52,21 +62,7 @@ public class TeamMember
      */
     public String getFullName()
     {
-        if (isRider())
-        {
-            if (isHighRoller)
-            {
-                return "High Roller " + fullName;
-            }
-            else
-            {
-                return "Rider " + fullName;
-            }
-        }
-        else
-        {
-            return "Volunteer " + fullName;
-        }
+        return participant + " " + fullName;
     }
 
     /**
@@ -189,7 +185,7 @@ public class TeamMember
      */
     public boolean isRider()
     {
-        return commitment.signum() > 0;
+        return participant.equalsIgnoreCase("Rider");
     }
 
     /**
@@ -200,28 +196,6 @@ public class TeamMember
     public BigDecimal getShortfall()
     {
         return commitment.subtract(raised).subtract(getAdjustmentTotal());
-    }
-
-    /**
-     * Set properties on this team member from additional columns in the spreadsheet.
-     *
-     * @param name the name of the column
-     * @param value the value for the column
-     */
-    public void setAdditionalProperty(String name, String value)
-    {
-        additionalProperties.setProperty(name, value);
-    }
-
-    /**
-     * Get the property value for a spreadsheet column.
-     *
-     * @param name the name to retrieve
-     * @return the value for the property name
-     */
-    public String getAdditionalProperty(String name)
-    {
-        return additionalProperties.getProperty(name);
     }
 
     /**

@@ -1,10 +1,12 @@
 package com.huffmancoding.pelotonia.funds;
 
-import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.net.URL;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
@@ -15,6 +17,9 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
  */
 public class FundCalculator
 {
+    /** properties for the program. */
+    private Properties properties = new Properties();
+
     /** the list of team members on the company's team, includes volunteers and non-employees */
     private List<TeamMember> teamMemberList;
 
@@ -22,7 +27,7 @@ public class FundCalculator
     private BigDecimal shareableFunds = BigDecimal.ZERO;
 
     /** the algorithm for determining company match. */
-    private CompanyMatcher matcher = new NonExistentCompanyMatcher();
+    private CompanyMatcher matcher;
 
     /**
      * Run the program.
@@ -34,44 +39,75 @@ public class FundCalculator
     {
         if (args.length < 0)
         {
-            throw new IOException("Usage: java <jar> rosterfile.xlsx [com.huffmancoding.pelotonia.funds.BigLots2014Matcher]");
+            throw new IOException("Usage: java <jar> properties.txt");
         }
 
-        String rosterFileName = args[0]; 
-        if (args.length > 1)
+        String propertiesFile = args[0];
+        try (FileReader reader = new FileReader(propertiesFile))
         {
-            String matcherClass = args[1];
-            matcher = (CompanyMatcher)Class.forName(matcherClass).getConstructor().newInstance();
-        }
+            properties.load(reader);
 
-        loadRosterFile(rosterFileName);
-        addMatchingFundsToTeamMembers();
-        reportOfShortHighRollers();
-        allocateSharableToTeamMembers();
-        reportOfTeamMembers();
+            String matcherClassName = properties.getProperty("matcher_class");
+            if (matcherClassName == null)
+            {
+                matcherClassName = "com.huffmancoding.pelotonia.funds.NonExistentCompanyMatcher";
+            }
+            @SuppressWarnings("unchecked")
+            Class<? extends CompanyMatcher> matcherClass = (Class<? extends CompanyMatcher>) Class.forName(matcherClassName);
+            Constructor<? extends CompanyMatcher> constructor = matcherClass.getConstructor(Properties.class);
+            matcher = constructor.newInstance(properties);
+
+            String rosterURLSpec = properties.getProperty("pelotonia_spreadsheet");
+            if (rosterURLSpec == null)
+            {
+                throw new Exception("Properties file " + propertiesFile + " must contain value for pelotonia_spreadsheet.");
+            }
+            loadRosterURL(rosterURLSpec);
+
+            String fundsURLSpec = properties.getProperty("teamfunds_spreadsheet");
+            if (fundsURLSpec != null)
+            {
+                loadFundsURL(fundsURLSpec);
+            }
+
+            addMatchingFundsToTeamMembers();
+            reportOfShortHighRollers();
+            allocateSharableToTeamMembers();
+            reportOfTeamMembers();
+        }
     }
 
     /**
      * Parse the spreadsheet of team members.
      *
-     * @param rosterFileName XLSX file name in {@link SpreadsheetParser} format
+     * @param rosterURLSpec XLSX file name in {@link SpreadsheetParser} format
      * @throws IOException in case the problem reading the file
      * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    private void loadRosterFile(String rosterFileName) throws InvalidFormatException, IOException
+    private void loadRosterURL(String rosterURLSpec) throws InvalidFormatException, IOException
     {
-        TeamMemberFactory teamMemberFactory = new TeamMemberFactory(matcher.getAdditionalColumns());
+        URL rasterURL = new URL(rosterURLSpec);
+        FundUtils.log("Loading spreadsheet " + rasterURL.toExternalForm());
 
-        File rosterFile = new File(rosterFileName);
-        Date dateOfFile = new Date(rosterFile.lastModified());
-        FundUtils.log("Loading spreadsheet " + rosterFile.getPath() + " dated " + dateOfFile + ".");
-
-        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(rosterFile, teamMemberFactory);
-        teamMemberParser.loadSpreadsheet();
+        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(rasterURL);
+        teamMemberParser.loadPelotoniaSpreadsheet();
         teamMemberList = teamMemberParser.getTeamMembers();
+    }
 
-        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(rosterFile);
-        sharableFundsParser.loadSpreadsheet();
+    /**
+     * Parse the spreadsheet of sharable funds.
+     *
+     * @param rosterURLSpec XLSX file name in {@link SpreadsheetParser} format
+     * @throws IOException in case the problem reading the file
+     * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
+     */
+    private void loadFundsURL(String fundsURLSpec) throws InvalidFormatException, IOException
+    {
+        URL fundsURL = new URL(fundsURLSpec);
+        FundUtils.log("Loading spreadsheet " + fundsURL.toExternalForm());
+
+        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(fundsURL);
+        sharableFundsParser.loadFundsSpreadsheet(properties.getProperty("teamfunds_sheetname"));
         shareableFunds = sharableFundsParser.getSharableFunds();
     }
 
@@ -127,9 +163,9 @@ public class FundCalculator
             totalCommitment = totalCommitment.add(memberCommitment);
 
             BigDecimal amountRaised = teamMember.getAmountRaised();
-            BigDecimal designatedFunds = amountRaised.add(teamMember.getAdjustmentTotal());
-            if (teamMember.isRider() || designatedFunds.signum() > 0)
+            if (teamMember.isRider() || amountRaised.signum() != 0 || !teamMember.getAdjustments().isEmpty())
             {
+                BigDecimal designatedFunds = amountRaised.add(teamMember.getAdjustmentTotal());
                 String reportLine = teamMember.getFullName() + " has " + FundUtils.fmt(designatedFunds);
                 if (teamMember.isRider())
                 {
@@ -151,7 +187,7 @@ public class FundCalculator
 
                 for (FundAdjustment adjustment : teamMember.getAdjustments())
                 {
-                    FundUtils.log(indent + adjustment.getReason() + ": " + FundUtils.fmt(adjustment.getAmount()));
+                    FundUtils.log(indent + adjustment.toString());
                 }
 
                 totalRaised = totalRaised.add(designatedFunds);
