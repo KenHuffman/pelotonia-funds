@@ -25,10 +25,10 @@ import org.apache.poi.ss.usermodel.Row;
 public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
 {
     /** header title for the column that contains team member rider ID */
-    public static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID", true);
+    public static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID");
 
     /** header title for the column that contains whether the member is an employee or not */
-    private static final SpreadsheetColumn EMPLOYEE_COLUMN = new SpreadsheetColumn("Employee", true);
+    private static final SpreadsheetColumn EMPLOYEE_COLUMN = new SpreadsheetColumn("Employee");
 
     /** The format of the rider id assigned by Pelotonia. */
     private static final Pattern RIDER_ID_PATTERN = Pattern.compile("[A-Z][A-Z][0-9][0-9][0-9][0-9]");
@@ -36,9 +36,9 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
     /** the list of team members in the file. */
     Set<String> employeRiderIDs = new TreeSet<>();
 
-    public EmployeeMemberSpreadsheetParser(URL url)
+    public EmployeeMemberSpreadsheetParser(URL url, String sheetName)
     {
-        super(url);
+        super(url, sheetName);
     }
 
     /**
@@ -57,9 +57,9 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
      * @throws IOException in case the problem reading the file
      * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    public void loadEmployeeSpreadsheet(String sheetName) throws IOException, InvalidFormatException
+    public void loadEmployeeSpreadsheet() throws IOException, InvalidFormatException
     {
-        super.loadSpreadsheet(sheetName);
+        super.loadSpreadsheet("employee names");
 
         if (employeRiderIDs.isEmpty())
         {
@@ -135,16 +135,13 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
      */
     private String parseEmployeeRow(Row row) throws InvalidFormatException
     {
-        if (RIDER_ID_COLUMN.isHeaderFound())
+        String riderID = RIDER_ID_COLUMN.getRowString(row);
+        if (riderID != null && RIDER_ID_PATTERN.matcher(riderID).matches())
         {
-            String riderID = RIDER_ID_COLUMN.getRowString(row);
-            if (riderID != null && RIDER_ID_PATTERN.matcher(riderID).matches())
+            String employee = EMPLOYEE_COLUMN.getRowString(row);
+            if (employee != null && employee.equalsIgnoreCase("Employee"))
             {
-                String employee = EMPLOYEE_COLUMN.getRowString(row);
-                if (employee != null && employee.equalsIgnoreCase("Employee"))
-                {
-                    return riderID;
-                }
+                return riderID;
             }
         }
 

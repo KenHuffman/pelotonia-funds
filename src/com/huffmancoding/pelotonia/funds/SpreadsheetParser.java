@@ -18,27 +18,34 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 public abstract class SpreadsheetParser
 {
     /** The Excel file to read. */
-    private final URL url;
+    private final URL sheetURL;
+
+    private final String sheetName;
 
     /**
      * Constructor for reading a spreadsheet file.
      *
-     * @param rosterFile the file to read
+     * @param sheetURL the URL to read
+     * @param sheet the name of sheet containing the data
      */
-    public SpreadsheetParser(URL url)
+    public SpreadsheetParser(URL url, String sheet)
     {
-        this.url = url;
+        sheetURL = url;
+        sheetName = sheet;
     }
 
     /**
-     * Load the TeamMembers from the {@link #rosterFile}.
-     *
+     * Load the TeamMembers from the {@link #sheetURL}.
+     * 
+     * @param purpose the purpose of loading this spreadsheet
      * @throws IOException in case the problem reading the file
      * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    public void loadSpreadsheet(String sheetName) throws IOException, InvalidFormatException
+    public void loadSpreadsheet(String purpose) throws IOException, InvalidFormatException
     {
-        try (InputStream rosterStream = url.openStream())
+        FundUtils.log("Loading spreadsheet " + sheetURL.toExternalForm() + " for " + purpose);
+
+        try (InputStream rosterStream = sheetURL.openStream())
         {
             Workbook wb = WorkbookFactory.create(rosterStream);
             Sheet sheet;
@@ -47,7 +54,7 @@ public abstract class SpreadsheetParser
                 sheet = wb.getSheet(sheetName);
                 if (sheet == null)
                 {
-                    throw new InvalidFormatException("Spreadsheet " + url.toExternalForm() + " is missing a sheet named " + sheetName);
+                    throw new InvalidFormatException("Spreadsheet " + sheetURL.toExternalForm() + " is missing a sheet named " + sheetName);
                 }
             }
             else
@@ -86,7 +93,7 @@ public abstract class SpreadsheetParser
         }
         catch (Exception ex)
         {
-            InvalidFormatException rowException = new InvalidFormatException("Error on row " + row.getRowNum() + " of " + url.getPath());
+            InvalidFormatException rowException = new InvalidFormatException("Error on row " + row.getRowNum() + " of " + sheetURL.getPath());
             rowException.initCause(ex);
             throw rowException;
         }

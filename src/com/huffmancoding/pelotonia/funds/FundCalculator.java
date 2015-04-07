@@ -67,7 +67,8 @@ public class FundCalculator
             String fundsURLSpec = properties.getProperty("teamfunds_spreadsheet");
             if (fundsURLSpec != null)
             {
-                loadFundsURL(fundsURLSpec);
+                String sheetName = properties.getProperty("teamfunds_sheetname");
+                loadFundsURL(fundsURLSpec, sheetName);
             }
 
             addMatchingFundsToTeamMembers();
@@ -80,16 +81,13 @@ public class FundCalculator
     /**
      * Parse the spreadsheet of team members.
      *
-     * @param rosterURLSpec XLSX file name in {@link SpreadsheetParser} format
+     * @param rosterURL XLSX file name in {@link SpreadsheetParser} format
      * @throws IOException in case the problem reading the file
      * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    private void loadRosterURL(String rosterURLSpec) throws InvalidFormatException, IOException
+    private void loadRosterURL(String rosterURL) throws InvalidFormatException, IOException
     {
-        URL rasterURL = new URL(rosterURLSpec);
-        FundUtils.log("Loading spreadsheet " + rasterURL.toExternalForm());
-
-        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(rasterURL);
+        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(new URL(rosterURL));
         teamMemberParser.loadPelotoniaSpreadsheet();
         teamMemberList = teamMemberParser.getTeamMembers();
     }
@@ -97,17 +95,15 @@ public class FundCalculator
     /**
      * Parse the spreadsheet of sharable funds.
      *
-     * @param rosterURLSpec XLSX file name in {@link SpreadsheetParser} format
+     * @param fundsURL XLSX file name in {@link SpreadsheetParser} format
+     * @param sheetName the name of the sheet in the fundsURL
      * @throws IOException in case the problem reading the file
      * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    private void loadFundsURL(String fundsURLSpec) throws InvalidFormatException, IOException
+    private void loadFundsURL(String fundsURL, String sheetName) throws InvalidFormatException, IOException
     {
-        URL fundsURL = new URL(fundsURLSpec);
-        FundUtils.log("Loading spreadsheet " + fundsURL.toExternalForm());
-
-        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(fundsURL);
-        sharableFundsParser.loadFundsSpreadsheet(properties.getProperty("teamfunds_sheetname"));
+        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(new URL(fundsURL), sheetName);
+        sharableFundsParser.loadFundsSpreadsheet();
         shareableFunds = sharableFundsParser.getSharableFunds();
     }
 

@@ -14,19 +14,16 @@ import org.apache.poi.ss.usermodel.Row;
 public class SpreadsheetColumn
 {
     private final String name;
-    private final boolean isRequired;
     private int index = -1;
 
     /**
      * Constructor.
      *
      * @param name the title to match against the roster file cell value
-     * @param isRequired whether this column has to exist in the spreadsheet
      */
-    public SpreadsheetColumn(String name, boolean isRequired)
+    public SpreadsheetColumn(String name)
     {
         this.name = name;
-        this.isRequired = isRequired;
     }
 
     /**
@@ -69,13 +66,7 @@ public class SpreadsheetColumn
     {
         if (! isHeaderFound())
         {
-            String message = "Header row does not contain column \"" + name + "\"";
-            if (isRequired)
-            {
-                throw new InvalidFormatException(message);
-            }
-
-            FundUtils.log(message);
+            throw new InvalidFormatException("Header row does not contain column \"" + name + "\"");
         }
     }
 

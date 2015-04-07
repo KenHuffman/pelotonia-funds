@@ -23,13 +23,13 @@ import org.apache.poi.ss.usermodel.Row;
 public class SharableFundsSpreadsheetParser extends SpreadsheetParser
 {
     /** header title for the column that contains the name of the fund source. */
-    public static final SpreadsheetColumn FUND_SOURCE_COLUMN = new SpreadsheetColumn("Fund Source", false);
+    public static final SpreadsheetColumn FUND_SOURCE_COLUMN = new SpreadsheetColumn("Fund Source");
 
     /** header title for the column that contains the fund source amount. */
-    private static final SpreadsheetColumn FUND_AMOUNT_COLUMN = new SpreadsheetColumn("Amount", true);
+    private static final SpreadsheetColumn FUND_AMOUNT_COLUMN = new SpreadsheetColumn("Amount");
 
     /** header title for the column that contains "Additional" if it should be included in funds to be shared. */
-    private static final SpreadsheetColumn FUND_TYPE_COLUMN = new SpreadsheetColumn("Fund Type", true);
+    private static final SpreadsheetColumn FUND_TYPE_COLUMN = new SpreadsheetColumn("Fund Type");
 
     /** the running total of the {@link #fundAmountColumn}. */
     private BigDecimal shareableFunds = BigDecimal.ZERO;
@@ -39,9 +39,9 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
      *
      * @param url the spreadsheet to read
      */
-    public SharableFundsSpreadsheetParser(URL url)
+    public SharableFundsSpreadsheetParser(URL url, String sheetName)
     {
-        super(url);
+        super(url, sheetName);
     }
 
     /**
@@ -60,9 +60,9 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
      * @throws IOException in case the problem reading the file
      * @throws InvalidFormatException in case of syntax or semantic xlsx format errors
      */
-    public void loadFundsSpreadsheet(String sheetName) throws IOException, InvalidFormatException
+    public void loadFundsSpreadsheet() throws IOException, InvalidFormatException
     {
-        super.loadSpreadsheet(sheetName);
+        super.loadSpreadsheet("shared peloton funds");
 
         FUND_SOURCE_COLUMN.checkHeaderFound();
 
@@ -132,16 +132,13 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
      */
     private BigDecimal parseAdditionalFundsRow(Row row) throws InvalidFormatException
     {
-        if (FUND_SOURCE_COLUMN.isHeaderFound())
+        String fundType = FUND_TYPE_COLUMN.getRowString(row);
+        if (fundType != null && fundType.equalsIgnoreCase("Additional"))
         {
-            String fundType = FUND_TYPE_COLUMN.getRowString(row);
-            if (fundType != null && fundType.equalsIgnoreCase("Additional"))
-            {
-                String fundSource = FUND_SOURCE_COLUMN.getRowString(row);
-                BigDecimal fundAmount = FUND_AMOUNT_COLUMN.getRowBigDecimal(row);
-                FundUtils.log("Shared fund: " + fundSource + " with " + FundUtils.fmt(fundAmount) + ".");
-                return fundAmount;
-            }
+            String fundSource = FUND_SOURCE_COLUMN.getRowString(row);
+            BigDecimal fundAmount = FUND_AMOUNT_COLUMN.getRowBigDecimal(row);
+            FundUtils.log("Shared fund: " + fundSource + " with " + FundUtils.fmt(fundAmount) + ".");
+            return fundAmount;
         }
 
         return null;

@@ -19,25 +19,25 @@ import org.apache.poi.ss.usermodel.Row;
 public class TeamMemberSpreadsheetParser extends SpreadsheetParser
 {
     /** header title for the column that contains team member rider ID */
-    public static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID", true);
+    public static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID");
 
     /** header title for the column that contains team member first name */
-    private static final SpreadsheetColumn FIRST_NAME_COLUMN = new SpreadsheetColumn("First Name", true);
+    private static final SpreadsheetColumn FIRST_NAME_COLUMN = new SpreadsheetColumn("First Name");
 
     /** header title for the column that contains team member last name */
-    private static final SpreadsheetColumn LAST_NAME_COLUMN = new SpreadsheetColumn("Last Name", true);
+    private static final SpreadsheetColumn LAST_NAME_COLUMN = new SpreadsheetColumn("Last Name");
 
     /** header title for the column that contains whether the member is a Rider, Virtual Rider, or Volunteer */
-    private static final SpreadsheetColumn PARTICIPANT_COLUMN = new SpreadsheetColumn("Participant", true);
+    private static final SpreadsheetColumn PARTICIPANT_COLUMN = new SpreadsheetColumn("Participant");
 
     /** header title for the column that contains the high roller flag "Yes" */
-    private static final SpreadsheetColumn HIGH_ROLLER_COLUMN = new SpreadsheetColumn("High Roller", false);
+    private static final SpreadsheetColumn HIGH_ROLLER_COLUMN = new SpreadsheetColumn("High Roller");
 
     /** header title for the column that contains team member commitment */
-    private static final SpreadsheetColumn COMMITMENT_COLUMN = new SpreadsheetColumn("Commitment", true);
+    private static final SpreadsheetColumn COMMITMENT_COLUMN = new SpreadsheetColumn("Commitment");
 
     /** header title for the column that contains team member amount individually raised */
-    private static final SpreadsheetColumn AMOUNT_RAISED_COLUMN = new SpreadsheetColumn("Amount Raised", true);
+    private static final SpreadsheetColumn AMOUNT_RAISED_COLUMN = new SpreadsheetColumn("Amount Raised");
 
     /** The format of the rider id assigned by Pelotonia. */
     private static final Pattern RIDER_ID_PATTERN = Pattern.compile("[A-Z][A-Z][0-9][0-9][0-9][0-9]");
@@ -51,7 +51,7 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
 
     public TeamMemberSpreadsheetParser(URL url)
     {
-        super(url);
+        super(url, null);
 
         teamMemberColumns.add(FIRST_NAME_COLUMN);
         teamMemberColumns.add(LAST_NAME_COLUMN);
@@ -79,7 +79,7 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
      */
     public void loadPelotoniaSpreadsheet() throws IOException, InvalidFormatException
     {
-        super.loadSpreadsheet(null);
+        super.loadSpreadsheet("individually raised funds");
 
         RIDER_ID_COLUMN.checkHeaderFound();
         if (teamMemberList.isEmpty())
@@ -162,22 +162,19 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
      */
     private TeamMember parseTeamMemberRow(Row row) throws InvalidFormatException
     {
-        if (RIDER_ID_COLUMN.isHeaderFound())
+        String riderID = RIDER_ID_COLUMN.getRowString(row);
+        if (riderID != null && RIDER_ID_PATTERN.matcher(riderID).matches())
         {
-            String riderID = RIDER_ID_COLUMN.getRowString(row);
-            if (riderID != null && RIDER_ID_PATTERN.matcher(riderID).matches())
+            TeamMember teamMember = createTeamMember(row);
+            if (teamMember.isRider() || teamMember.getAmountRaised().signum() > 0)
             {
-                TeamMember teamMember = createTeamMember(row);
-                if (teamMember.isRider() || teamMember.getAmountRaised().signum() > 0)
-                {
-                    FundUtils.log(teamMember.getFullName() + " raised " + FundUtils.fmt(teamMember.getAmountRaised()) + ".");
-                }
-
-                return teamMember;
+                FundUtils.log(teamMember.getFullName() + " raised " + FundUtils.fmt(teamMember.getAmountRaised()) + ".");
             }
+
+            return teamMember;
         }
 
-        return null;
+            return null;
     }
 
     /**
@@ -192,12 +189,8 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
         String fullName = FIRST_NAME_COLUMN.getRowString(row) + " " + LAST_NAME_COLUMN.getRowString(row);
         String participant = PARTICIPANT_COLUMN.getRowString(row);
         BigDecimal commitment = COMMITMENT_COLUMN.getRowBigDecimal(row);
-        boolean isHighRoller = false;
-        if (HIGH_ROLLER_COLUMN.isHeaderFound())
-        {
-            String highRollerValue = HIGH_ROLLER_COLUMN.getRowString(row);
-            isHighRoller = highRollerValue != null && !highRollerValue.trim().isEmpty() && !highRollerValue.equalsIgnoreCase("No");
-        }
+        String highRollerValue = HIGH_ROLLER_COLUMN.getRowString(row);
+        boolean isHighRoller = highRollerValue != null && !highRollerValue.trim().isEmpty() && !highRollerValue.equalsIgnoreCase("No");
         BigDecimal raised = AMOUNT_RAISED_COLUMN.getRowBigDecimal(row);
 
         return new TeamMember(riderId, fullName, participant, commitment, isHighRoller, raised);

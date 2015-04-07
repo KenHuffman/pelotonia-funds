@@ -33,14 +33,12 @@ public class LevelMatcher extends CompanyMatcher
     {
         super(properties);
 
-        String employeeURLString = properties.getProperty("matcher_spreadsheet");
-        if (employeeURLString != null)
+        String employeeURL = properties.getProperty("matcher_spreadsheet");
+        if (employeeURL != null)
         {
-            URL employeeURL = new URL(employeeURLString);
-            FundUtils.log("Loading spreadsheet " + employeeURL.toExternalForm());
-
-            employeeMemberParser = new EmployeeMemberSpreadsheetParser(employeeURL);
-            employeeMemberParser.loadEmployeeSpreadsheet(properties.getProperty("matcher_sheetname"));
+            String sheetName = properties.getProperty("matcher_sheetname");
+            employeeMemberParser = new EmployeeMemberSpreadsheetParser(new URL(employeeURL), sheetName);
+            employeeMemberParser.loadEmployeeSpreadsheet();
         }
     }
 
