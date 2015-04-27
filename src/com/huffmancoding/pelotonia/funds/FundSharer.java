@@ -1,9 +1,11 @@
 package com.huffmancoding.pelotonia.funds;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,6 +20,8 @@ public class FundSharer
     private static final String TO_TEAMMATE_REASON = "To teammate";
 
     private static final String FROM_TEAMMATE_REASON = "From teammate";
+
+    BigDecimal PENNY = new BigDecimal("0.01");
 
     /** the list of team members on the company's team, includes volunteers and non-employees */
     private final List<TeamMember> teamMemberList;
@@ -74,7 +78,6 @@ public class FundSharer
         if (usedExcessFromMembers.get())
         {
             assignSharersToReceivers();
-            //reclaimSharersUnassigned();
         }
 
         return shareableFunds;
@@ -92,26 +95,20 @@ public class FundSharer
         for (int round = 1; ! (membersWithShortfall = findNonHighRollersShortOfCommitment()).isEmpty(); ++round)
         {
             BigDecimal perMember = calculateFundingRoundAmount(membersWithShortfall, usedExcessFromMembers);
-
-            List<TeamMember> membersReceivingMoneyThisRound = membersWithShortfall;
             if (perMember.signum() == 0)
             {
-                // we have so little shared funds, that we cannot even give a penny to each rider
-                perMember = new BigDecimal("0.01"); // a penny
-                int pennyCount = shareableFunds.divide(perMember).intValue();
-                if (pennyCount == 0)
-                {
-                    break;
-                }
-
-                // give a penny to some riders
-                membersReceivingMoneyThisRound = membersWithShortfall.subList(0, pennyCount);
+                break;
             }
 
-            FundUtils.log("Funding round " + round + " has sharable team funds of " + FundUtils.fmt(shareableFunds) +
-                    ", giving " + FundUtils.fmt(perMember) + " to " + membersReceivingMoneyThisRound.size() + " underfunded rider(s).");
+            // Sometimes the perMember will be a PENNY, and we have to give money to only some of the riders
+            int receiverCount = shareableFunds.divide(perMember, RoundingMode.DOWN).intValue();
+            List<TeamMember> membersReceivingMoneyThisRound = membersWithShortfall.subList(0, receiverCount);
 
             String sharedReason = (usedExcessFromMembers.get() ? FROM_TEAMMATE_REASON : "From peloton");
+
+            FundUtils.log("Funding round " + round + " has sharable team funds of " + FundUtils.fmt(shareableFunds) +
+                    ", giving " + FundUtils.fmt(perMember) + " " + sharedReason.toLowerCase() + " to " + receiverCount + " underfunded rider(s).");
+
             moveSharedToMembers(sharedReason, perMember, membersReceivingMoneyThisRound);
         }
 
@@ -156,7 +153,7 @@ public class FundSharer
     {
         TeamMember closestToCommitment = findMemberClosestToCommitment(membersWithShortfall);
 
-        BigDecimal perMember = pickSmallestShortfallOrEvenSplit(closestToCommitment, membersWithShortfall);
+        BigDecimal perMember = pickSmallestShortfallOrSplit(closestToCommitment, membersWithShortfall);
         if (perMember.signum() == 0)
         {
             // we have no money to share, have we used money from other riders?
@@ -166,7 +163,7 @@ public class FundSharer
                 addSharersFundsToPelotonShareable();
 
                 // try again to see if we have money to give, now that we have used money from other riders
-                perMember = pickSmallestShortfallOrEvenSplit(closestToCommitment, membersWithShortfall);
+                perMember = pickSmallestShortfallOrSplit(closestToCommitment, membersWithShortfall);
             }
         }
 
@@ -207,10 +204,17 @@ public class FundSharer
      * @param membersWithShortfall the riders needing more money
      * @return the smallest rider shortfall or possibly BigDecimal.ZERO
      */
-    private BigDecimal pickSmallestShortfallOrEvenSplit(TeamMember closestToCommitment, List<TeamMember> membersWithShortfall)
+    private BigDecimal pickSmallestShortfallOrSplit(TeamMember closestToCommitment, List<TeamMember> membersWithShortfall)
     {
         assert ! membersWithShortfall.isEmpty();
-        BigDecimal evenSplit = shareableFunds.divide(new BigDecimal(membersWithShortfall.size()), BigDecimal.ROUND_DOWN);
+        BigDecimal evenSplit = shareableFunds.divide(new BigDecimal(membersWithShortfall.size()), RoundingMode.DOWN);
+
+        if (evenSplit.signum() == 0 && shareableFunds.signum() > 0)
+        {
+            // we have so little shared funds, that we cannot even give a penny to each rider
+            // so give a penny to a some of them
+            evenSplit = PENNY;
+        }
 
         return closestToCommitment.getShortfall().min(evenSplit);
     }
@@ -333,12 +337,6 @@ public class FundSharer
             return;
         }
 
-        for (TeamMember sharingMember : sharers)
-        {
-            BigDecimal shared = sharingMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
-            FundUtils.log(sharingMember.getFullName() + " will share " + FundUtils.fmt(shared) + " with teammates.");
-        }
-
         TeamMember sharingMember = sharers.remove(0);
 
         for (TeamMember needingMember : teamMemberList)
@@ -351,7 +349,7 @@ public class FundSharer
                 BigDecimal sharingAvailAmount = sharingMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();
                 if (sharingAvailAmount.signum() == 0)
                 {
-                    // shareIndex has run out of money, go to next sharer and try again
+                    // sharingMember has run out of money, go to next sharer and try again
                     sharingMember = sharers.remove(0);
                 }
                 else
@@ -390,7 +388,7 @@ public class FundSharer
      */
     private List<TeamMember> findSharers()
     {
-        List<TeamMember> sharers = new ArrayList<>();
+        List<TeamMember> sharers = new LinkedList<>();
         for (TeamMember teamMember : teamMemberList)
         {
             BigDecimal sharedWithTeam = teamMember.findAdjustmentAmount(TO_TEAMMATE_REASON).negate();

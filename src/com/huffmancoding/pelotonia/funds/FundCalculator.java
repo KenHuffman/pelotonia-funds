@@ -24,7 +24,7 @@ public class FundCalculator
     private List<TeamMember> teamMemberList;
 
     /** the amount of money that can be shared with individual riders if necessary. */
-    private BigDecimal shareableFunds = BigDecimal.ZERO;
+    private BigDecimal shareableFunds;
 
     /** the algorithm for determining company match. */
     private CompanyMatcher matcher;
@@ -104,7 +104,9 @@ public class FundCalculator
     {
         SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(new URL(fundsURL), sheetName);
         sharableFundsParser.loadFundsSpreadsheet();
-        shareableFunds = sharableFundsParser.getSharableFunds();
+
+        // Add 0.00 to number to convert whole dollar decimal to one with penny precision
+        shareableFunds = sharableFundsParser.getSharableFunds().add(new BigDecimal("0.00"));
     }
 
     /**
