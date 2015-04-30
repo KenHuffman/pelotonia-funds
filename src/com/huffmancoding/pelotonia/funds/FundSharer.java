@@ -101,7 +101,8 @@ public class FundSharer
             }
 
             // Sometimes the perMember will be a PENNY, and we have to give money to only some of the riders
-            int receiverCount = shareableFunds.divide(perMember, RoundingMode.DOWN).intValue();
+            int receiverCount = Math.min(shareableFunds.divide(perMember, RoundingMode.DOWN).intValue(), membersWithShortfall.size());
+
             List<TeamMember> membersReceivingMoneyThisRound = membersWithShortfall.subList(0, receiverCount);
 
             String sharedReason = (usedExcessFromMembers.get() ? FROM_TEAMMATE_REASON : "From peloton");
