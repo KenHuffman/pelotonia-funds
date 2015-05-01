@@ -17,11 +17,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FundSharer
 {
+    /** the reason a sharing member is losing funds. */
     private static final String TO_TEAMMATE_REASON = "To teammate";
 
+    /** the reason a receiving tider is gaining funds. */
     private static final String FROM_TEAMMATE_REASON = "From teammate";
 
-    BigDecimal PENNY = new BigDecimal("0.01");
+    /** the minimum that can be given for a funding round. */
+    private static final BigDecimal PENNY = new BigDecimal("0.01");
 
     /** the list of team members on the company's team, includes volunteers and non-employees */
     private final List<TeamMember> teamMemberList;
@@ -202,8 +205,9 @@ public class FundSharer
      * 1) the amount of the rider that is closest to his commitment (but not over).
      * 2) the amount of shareable funds evenly divide among those needing additional funds.
      *
+     * @param closestToCommitment the rider closest to, but not over, his goal
      * @param membersWithShortfall the riders needing more money
-     * @return the smallest rider shortfall or possibly BigDecimal.ZERO
+     * @return the smallest rider short fall or possibly BigDecimal.ZERO
      */
     private BigDecimal pickSmallestShortfallOrSplit(TeamMember closestToCommitment, List<TeamMember> membersWithShortfall)
     {
@@ -260,7 +264,7 @@ public class FundSharer
      */
     private class TeamMemberAdjustmentComparator implements Comparator<TeamMember>
     {
-        // the adjustment reason to sort on
+        /** the adjustment reason to sort on */
         private final String reasonForCompare;
 
         /**

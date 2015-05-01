@@ -35,7 +35,9 @@ public class TeamMember
     /**
      * Constructor.
      *
+     * @param riderId the Pelotonia rider id
      * @param fullName first and last name of team member
+     * @param participant whether the team member is a rider, volunteer, etc.
      * @param commitment commitment by rider or BigDecimal.ZERO
      * @param isHighRoller whether the team member is a high roller
      * @param raised amount member has raised on his/her own
@@ -50,6 +52,11 @@ public class TeamMember
         this.raised = raised;
     }
 
+    /**
+     * Return the riderId for this team member.
+     *
+     * @return the rider id
+     */
     public String getRiderId()
     {
         return riderId;
@@ -88,7 +95,7 @@ public class TeamMember
     /**
      * Return the amount member raised by himself.
      *
-     * @return
+     * @return the amount member raised by himself
      */
     public BigDecimal getAmountRaised()
     {

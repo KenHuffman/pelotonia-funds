@@ -36,6 +36,12 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
     /** the list of team members in the file. */
     Set<String> employeRiderIDs = new TreeSet<>();
 
+    /**
+     * Constructor.
+     *
+     * @param url the URL to read
+     * @param sheetName the name of sheet containing the data
+     */
     public EmployeeMemberSpreadsheetParser(URL url, String sheetName)
     {
         super(url, sheetName);
@@ -44,6 +50,7 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
     /**
      * Whether the team member qualifies for match.
      *
+     * @param riderId the id of the rider
      * @return true if member qualifies for match, false otherwise
      */
     public boolean isEmployee(String riderId)

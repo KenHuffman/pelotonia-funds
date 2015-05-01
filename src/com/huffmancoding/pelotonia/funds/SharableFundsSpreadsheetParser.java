@@ -31,13 +31,14 @@ public class SharableFundsSpreadsheetParser extends SpreadsheetParser
     /** header title for the column that contains "Additional" if it should be included in funds to be shared. */
     private static final SpreadsheetColumn FUND_TYPE_COLUMN = new SpreadsheetColumn("Fund Type");
 
-    /** the running total of the {@link #fundAmountColumn}. */
+    /** the running total of the amount of funds that can be given to riders. */
     private BigDecimal shareableFunds = BigDecimal.ZERO;
 
     /**
      * Constructor.
      *
      * @param url the spreadsheet to read
+     * @param sheetName the name of sheet containing the data
      */
     public SharableFundsSpreadsheetParser(URL url, String sheetName)
     {

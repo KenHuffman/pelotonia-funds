@@ -13,7 +13,10 @@ import org.apache.poi.ss.usermodel.Row;
  */
 public class SpreadsheetColumn
 {
+    /** the header name of the column. */
     private final String name;
+
+    /** the index of this header in the spreadsheet. */
     private int index = -1;
 
     /**
@@ -73,7 +76,7 @@ public class SpreadsheetColumn
     /**
      * Returns true if an earlier call to {@link #isHeaderCell(Cell)} returned true.
      *
-     * @return
+     * @return true if the header is present in the spreadsheet
      */
     public boolean isHeaderFound()
     {

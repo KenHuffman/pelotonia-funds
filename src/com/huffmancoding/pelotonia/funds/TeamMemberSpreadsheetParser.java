@@ -42,13 +42,20 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
     /** The format of the rider id assigned by Pelotonia. */
     private static final Pattern RIDER_ID_PATTERN = Pattern.compile("[A-Z][A-Z][0-9][0-9][0-9][0-9]");
 
+    /** the columns of the team member spreadsheet from Pelotonia website. */
     private final List<SpreadsheetColumn> teamMemberColumns = new ArrayList<>();
 
+    /** the running total of all the money raised by the individual riders. */
     private BigDecimal initialAmountRaised = BigDecimal.ZERO;
 
     /** the list of team members in the file. */
     List<TeamMember> teamMemberList = new ArrayList<>();
 
+    /**
+     * Constructor.
+     *
+     * @param url the URL to read
+     */
     public TeamMemberSpreadsheetParser(URL url)
     {
         super(url, null);
@@ -182,6 +189,7 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
      *
      * @param row the spreadsheet row
      * @return the TeamMember with properties set
+     * @throws InvalidFormatException if a value in the spreadsheet isn't the expected type
      */
     public TeamMember createTeamMember(Row row) throws InvalidFormatException
     {

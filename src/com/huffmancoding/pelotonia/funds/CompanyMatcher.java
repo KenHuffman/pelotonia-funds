@@ -10,16 +10,25 @@ import java.util.Properties;
  */
 public abstract class CompanyMatcher
 {
+    /** the properties files for the application, in case the Matcher needs configuration parameters. */
     final Properties properties;
-    
+
     /**
+     * Constructor.
+     *
      * @param properties the properties necessary for configuring the match algorithm
+     * @throws Exception in case of error
      */
     public CompanyMatcher(Properties properties) throws Exception
     {
         this.properties = properties;
     }
 
+    /**
+     * Get the app properties.
+     *
+     * @return the properties of the app
+     */
     public Properties getProperties()
     {
         return properties;

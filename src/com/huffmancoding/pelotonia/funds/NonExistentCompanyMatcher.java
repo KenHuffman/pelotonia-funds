@@ -15,7 +15,10 @@ import java.util.Properties;
 public class NonExistentCompanyMatcher extends CompanyMatcher
 {
     /**
-     * {@inheritDoc}
+     * Constructor.
+     *
+     * @param properties the properties necessary for configuring the match algorithm
+     * @throws Exception in case of error
      */
     public NonExistentCompanyMatcher(Properties properties) throws Exception
     {

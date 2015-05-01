@@ -12,6 +12,7 @@ import java.util.Properties;
  */
 public class LevelMatcher extends CompanyMatcher
 {
+    /** the parser that knows whether a team member is an employee. */
     private EmployeeMemberSpreadsheetParser employeeMemberParser = null;
 
     /** the number of members who have received matching funds from the company. */
@@ -29,6 +30,12 @@ public class LevelMatcher extends CompanyMatcher
     /** the total amount riders will receive once those short of level reach it.. */
     private BigDecimal totalUnattainedMatchingAmount = BigDecimal.ZERO;
 
+    /**
+     * Constructor.
+     *
+     * @param properties the properties necessary for configuring the match algorithm
+     * @throws Exception in case of error
+     */
     public LevelMatcher(Properties properties) throws Exception
     {
         super(properties);
@@ -84,6 +91,7 @@ public class LevelMatcher extends CompanyMatcher
     /**
      * Whether the team member qualifies for match.
      *
+     * @param teamMember the team member to check
      * @return true if member qualifies for match, false otherwise
      */
     public boolean isEmployee(TeamMember teamMember)
@@ -95,7 +103,7 @@ public class LevelMatcher extends CompanyMatcher
      * Return the matching amount a rider should receive from the company.
      *
      * @param teamMember the member to check
-     * @return {@value #RIDER_MATCHING_AMOUNT} if the rider employee has met the threshold {@value #RIDER_MATCHING_LEVEL}
+     * @return the FundAdjust from the company if the rider employee has met his threshold
      */
     private FundAdjustment getMatchingForRider(TeamMember teamMember)
     {
@@ -125,7 +133,7 @@ public class LevelMatcher extends CompanyMatcher
      * Return the matching amount a volunteer should receive from the company.
      *
      * @param teamMember the member to check
-     * @return a fixed {@value #VOLUNTEER_MATCHING_AMOUNT} for volunteering employees.
+     * @return the FundAdjust from the company for employee volunteers
      */
     private FundAdjustment getMatchingForVolunteer(TeamMember teamMember)
     {
@@ -151,8 +159,8 @@ public class LevelMatcher extends CompanyMatcher
     public BigDecimal getRiderMatchingLevel(TeamMember teamMember)
     {
         BigDecimal commitment = teamMember.getCommitment();
-        String[] values = getMatchAmountPair(commitment.toPlainString());
-        return new BigDecimal(values[0]);
+        BigDecimal[] values = getMatchAmountPair(commitment.toPlainString());
+        return values[0];
     }
 
     /**
@@ -164,11 +172,17 @@ public class LevelMatcher extends CompanyMatcher
     public BigDecimal getRiderMatchingAmount(TeamMember teamMember)
     {
         BigDecimal commitment = teamMember.getCommitment();
-        String[] values = getMatchAmountPair(commitment.toPlainString());
-        return new BigDecimal(values[1]);
+        BigDecimal[] values = getMatchAmountPair(commitment.toPlainString());
+        return values[1];
     }
 
-    private String[] getMatchAmountPair(String suffix)
+    /**
+     * Return an array of BigDecimal values from the properties.
+     *
+     * @param suffix the properties to find
+     * @return an array of BigDecimals parsed for the comma separated property value
+     */
+    private BigDecimal[] getMatchAmountPair(String suffix)
     {
         String propertyName = "matcher_amount_" + suffix;
         String pair = getProperties().getProperty(propertyName);
@@ -177,7 +191,15 @@ public class LevelMatcher extends CompanyMatcher
             throw new IllegalArgumentException("Property file does not have: " + propertyName);
         }
 
-        return pair.split(",");
+        String[] strValues = pair.split(",");
+
+        BigDecimal[] values = new BigDecimal[strValues.length];
+        for (int i = 0; i < strValues.length; ++i)
+        {
+            values[i] = new BigDecimal(strValues[i]);
+        }
+
+        return values;
     }
 
     /**
@@ -188,7 +210,7 @@ public class LevelMatcher extends CompanyMatcher
      */
     public BigDecimal getVolunteerMatchingAmount(TeamMember teamMember)
     {
-        String[] values = getMatchAmountPair("volunteer");
-        return new BigDecimal(values[1]);
+        BigDecimal[] values = getMatchAmountPair("volunteer");
+        return values[1];
     }
 }

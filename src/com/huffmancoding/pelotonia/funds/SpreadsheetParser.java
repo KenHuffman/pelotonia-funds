@@ -20,13 +20,14 @@ public abstract class SpreadsheetParser
     /** The Excel file to read. */
     private final URL sheetURL;
 
+    /** the name of the sheet (tab) containing data to parse), null implies first sheet */
     private final String sheetName;
 
     /**
      * Constructor for reading a spreadsheet file.
      *
-     * @param sheetURL the URL to read
-     * @param sheet the name of sheet containing the data
+     * @param url the URL to read
+     * @param sheet the name of sheet containing the data, can be null
      */
     public SpreadsheetParser(URL url, String sheet)
     {
