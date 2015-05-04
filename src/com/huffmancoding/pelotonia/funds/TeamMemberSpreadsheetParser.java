@@ -19,7 +19,7 @@ import org.apache.poi.ss.usermodel.Row;
 public class TeamMemberSpreadsheetParser extends SpreadsheetParser
 {
     /** header title for the column that contains team member rider ID */
-    public static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID");
+    private static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID");
 
     /** header title for the column that contains team member first name */
     private static final SpreadsheetColumn FIRST_NAME_COLUMN = new SpreadsheetColumn("First Name");
@@ -49,7 +49,7 @@ public class TeamMemberSpreadsheetParser extends SpreadsheetParser
     private BigDecimal initialAmountRaised = BigDecimal.ZERO;
 
     /** the list of team members in the file. */
-    List<TeamMember> teamMemberList = new ArrayList<>();
+    private final List<TeamMember> teamMemberList = new ArrayList<>();
 
     /**
      * Constructor.

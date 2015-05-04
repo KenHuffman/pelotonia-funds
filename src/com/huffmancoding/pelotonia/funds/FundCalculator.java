@@ -18,7 +18,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 public class FundCalculator
 {
     /** properties for the program. */
-    private Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
     /** the list of team members on the company's team, includes volunteers and non-employees */
     private List<TeamMember> teamMemberList;

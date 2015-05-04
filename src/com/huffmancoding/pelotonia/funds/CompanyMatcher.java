@@ -11,7 +11,7 @@ import java.util.Properties;
 public abstract class CompanyMatcher
 {
     /** the properties files for the application, in case the Matcher needs configuration parameters. */
-    final Properties properties;
+    private final Properties properties;
 
     /**
      * Constructor.

@@ -25,7 +25,7 @@ import org.apache.poi.ss.usermodel.Row;
 public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
 {
     /** header title for the column that contains team member rider ID */
-    public static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID");
+    private static final SpreadsheetColumn RIDER_ID_COLUMN = new SpreadsheetColumn("Rider ID");
 
     /** header title for the column that contains whether the member is an employee or not */
     private static final SpreadsheetColumn EMPLOYEE_COLUMN = new SpreadsheetColumn("Employee");
@@ -34,7 +34,7 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
     private static final Pattern RIDER_ID_PATTERN = Pattern.compile("[A-Z][A-Z][0-9][0-9][0-9][0-9]");
 
     /** the list of team members in the file. */
-    Set<String> employeRiderIDs = new TreeSet<>();
+    private final Set<String> employeRiderIDs = new TreeSet<>();
 
     /**
      * Constructor.

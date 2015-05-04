@@ -30,7 +30,7 @@ public class TeamMember
     private final BigDecimal raised;
 
     /** the amount the team member has been given from shared funds. */
-    public List<FundAdjustment> adjustments = new ArrayList<>();
+    private final List<FundAdjustment> adjustments = new ArrayList<>();
 
     /**
      * Constructor.

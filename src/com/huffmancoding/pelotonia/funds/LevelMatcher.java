@@ -16,7 +16,7 @@ public class LevelMatcher extends CompanyMatcher
     private EmployeeMemberSpreadsheetParser employeeMemberParser = null;
 
     /** the number of members who have received matching funds from the company. */
-    protected int matchingCount = 0;
+    private int matchingCount = 0;
 
     /** the total amount the company has given members. */
     private BigDecimal totalMatching = BigDecimal.ZERO;
