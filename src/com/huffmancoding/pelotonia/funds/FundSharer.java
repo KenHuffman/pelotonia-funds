@@ -94,6 +94,8 @@ public class FundSharer
      */
     private int doFundingRounds(AtomicBoolean usedExcessFromMembers)
     {
+        BigDecimal maxFundingAmount = BigDecimal.ZERO;
+
         List<TeamMember> membersWithShortfall;
         for (int round = 1; ! (membersWithShortfall = findNonHighRollersShortOfCommitment()).isEmpty(); ++round)
         {
@@ -110,11 +112,16 @@ public class FundSharer
 
             String sharedReason = (usedExcessFromMembers.get() ? FROM_TEAMMATE_REASON : "From peloton");
 
-            FundUtils.log("Funding round " + round + " has sharable team funds of " + FundUtils.fmt(shareableFunds) +
-                    ", giving " + FundUtils.fmt(perMember) + " " + sharedReason.toLowerCase() + " to " + receiverCount + " underfunded rider(s).");
+            FundUtils.log("Funding round " + round +" has sharable " + (usedExcessFromMembers.get() ? "excess member" : "peloton") +
+                    " funds of " + FundUtils.fmt(shareableFunds) + ", giving " + FundUtils.fmt(perMember) + " " + sharedReason.toLowerCase() + 
+                    " to " + receiverCount + " underfunded rider(s).");
 
             moveSharedToMembers(sharedReason, perMember, membersReceivingMoneyThisRound);
+
+            maxFundingAmount = maxFundingAmount.add(perMember);
         }
+
+        FundUtils.log("Funding rounds have given up to " + FundUtils.fmt(maxFundingAmount) + " to riders short of their goal.");
 
         return membersWithShortfall.size();
     }
