@@ -1,7 +1,6 @@
 package com.huffmancoding.pelotonia.funds;
 
 import java.math.BigDecimal;
-import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
@@ -44,7 +43,7 @@ public class LevelMatcher extends CompanyMatcher
         if (employeeURL != null)
         {
             String sheetName = properties.getProperty("matcher_sheetname");
-            employeeMemberParser = new EmployeeMemberSpreadsheetParser(new URL(employeeURL), sheetName);
+            employeeMemberParser = new EmployeeMemberSpreadsheetParser(FundUtils.propertyToURL(employeeURL), sheetName);
             employeeMemberParser.loadEmployeeSpreadsheet();
         }
     }
