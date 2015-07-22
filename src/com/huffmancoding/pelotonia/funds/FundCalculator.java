@@ -4,7 +4,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
-import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
@@ -87,7 +86,7 @@ public class FundCalculator
      */
     private void loadRosterURL(String rosterURL) throws InvalidFormatException, IOException
     {
-        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(new URL(rosterURL));
+        TeamMemberSpreadsheetParser teamMemberParser = new TeamMemberSpreadsheetParser(FundUtils.propertyToURL(rosterURL));
         teamMemberParser.loadPelotoniaSpreadsheet();
         teamMemberList = teamMemberParser.getTeamMembers();
     }
