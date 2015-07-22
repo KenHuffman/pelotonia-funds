@@ -1,9 +1,11 @@
 #pelotonia_spreadsheet=file:///Users/KHuffman/Google Drive/Bike/Pelotonia/300889roster.xls
-pelotonia_spreadsheet=https://www.mypelotonia.org/files/300889roster.xls
+#pelotonia_spreadsheet=https://www.mypelotonia.org/files/300889roster.xls
+pelotonia_spreadsheet=file:///Users/KHuffman/Google Drive/Bike/Pelotonia/300889roster.xls
 teamfunds_spreadsheet=file:///Users/KHuffman/Google Drive/Bike/Pelotonia/Pelotonia Roster.xlsx
 teamfunds_sheetname=Summary
 matcher_class=com.huffmancoding.pelotonia.funds.LevelMatcher
 matcher_amount_volunteer=0,25
+matcher_amount_virtual=0,0
 matcher_amount_1200=400,300
 matcher_amount_1250=415,300
 matcher_amount_1800=600,400

@@ -37,7 +37,7 @@ public class FundCalculator
      */
     private void doFunding(String[] args) throws Exception
     {
-        if (args.length < 0)
+        if (args.length < 1)
         {
             throw new IOException("Usage: java <jar> properties.txt");
         }

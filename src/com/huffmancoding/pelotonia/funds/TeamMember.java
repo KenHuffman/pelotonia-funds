@@ -196,6 +196,16 @@ public class TeamMember
     }
 
     /**
+     * Whether this team member has requirement to raise funds.
+     *
+     * @return true, if the rider has been committed to raise funds
+     */
+    public boolean isVolunteer()
+    {
+        return participant.equalsIgnoreCase("Volunteer");
+    }
+
+    /**
      * Return the amount that a rider is short of his/her committment.
      *
      * @return the amount they raised plus any amount shared with them

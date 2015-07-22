@@ -78,7 +78,7 @@ public class LevelMatcher extends CompanyMatcher
             }
             else
             {
-                return getMatchingForVolunteer(teamMember);
+                return getMatchingForNonRider(teamMember);
             }
         }
         else
@@ -135,16 +135,16 @@ public class LevelMatcher extends CompanyMatcher
      * @param teamMember the member to check
      * @return the FundAdjust from the company for employee volunteers
      */
-    private FundAdjustment getMatchingForVolunteer(TeamMember teamMember)
+    private FundAdjustment getMatchingForNonRider(TeamMember teamMember)
     {
         ++matchingCount;
-        BigDecimal volunteerMatchAmount = getVolunteerMatchingAmount(teamMember);
-        if (volunteerMatchAmount.signum() != 0)
+        BigDecimal nonRiderMatchAmount = getNonRideratchingAmount(teamMember);
+        if (nonRiderMatchAmount.signum() != 0)
         {
-            totalMatching = totalMatching.add(volunteerMatchAmount);
+            totalMatching = totalMatching.add(nonRiderMatchAmount);
 
-            FundUtils.log(teamMember.getFullName() + " earned matching " + FundUtils.fmt(volunteerMatchAmount) + " for volunteering.");
-            return new FundAdjustment("Company volunteer match", volunteerMatchAmount);
+            FundUtils.log(teamMember.getFullName() + " earned matching " + FundUtils.fmt(nonRiderMatchAmount) + " for being a non-rider.");
+            return new FundAdjustment("Company non-rider match", nonRiderMatchAmount);
         }
 
         return null;
@@ -208,9 +208,19 @@ public class LevelMatcher extends CompanyMatcher
      * @param teamMember without commitment
      * @return the amount he will receive
      */
-    public BigDecimal getVolunteerMatchingAmount(TeamMember teamMember)
+    public BigDecimal getNonRideratchingAmount(TeamMember teamMember)
     {
-        BigDecimal[] values = getMatchAmountPair("volunteer");
+        String suffix;
+        if (teamMember.isVolunteer())
+        {
+            suffix = "volunteer";
+        }
+        else
+        {
+            suffix = "virtual";
+        }
+
+        BigDecimal[] values = getMatchAmountPair(suffix);
         return values[1];
     }
 }
