@@ -102,7 +102,7 @@ public class FundCalculator
      */
     private void loadFundsURL(String fundsURL, String sheetName) throws InvalidFormatException, IOException
     {
-        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(new URL(fundsURL), sheetName);
+        SharableFundsSpreadsheetParser sharableFundsParser = new SharableFundsSpreadsheetParser(FundUtils.propertyToURL(fundsURL), sheetName);
         sharableFundsParser.loadFundsSpreadsheet();
 
         // Add 0.00 to number to convert whole dollar decimal to one with penny precision
