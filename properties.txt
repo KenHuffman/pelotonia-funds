@@ -1,6 +1,6 @@
 #pelotonia_spreadsheet=file:///~/Google Drive/Bike/Pelotonia/300889roster.xls
 #pelotonia_spreadsheet=https://www.mypelotonia.org/files/300889roster.xls
-pelotonia_spreadsheet=file:///~/Google Drive/Bike/Pelotonia/300889roster.xls
+pelotonia_spreadsheet=https://www.mypelotonia.org/files/172573roster.xls
 teamfunds_spreadsheet=file:///~/Google Drive/Bike/Pelotonia/Pelotonia Roster.xlsx
 teamfunds_sheetname=Summary
 matcher_class=com.huffmancoding.pelotonia.funds.LevelMatcher
