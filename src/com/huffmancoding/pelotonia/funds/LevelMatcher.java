@@ -58,7 +58,7 @@ public class LevelMatcher extends CompanyMatcher
     {
         super.addFundsToTeamMembers(teamMemberList);
 
-        FundUtils.log(matchingCount + " members earned " + FundUtils.fmt(totalMatching) + " matching funds.");
+        FundUtils.log(matchingCount + " members have earned " + FundUtils.fmt(totalMatching) + " unpaid matching funds.");
         FundUtils.log(ridersShortCount + " riders need to raise " + FundUtils.fmt(totalShortOfMatchingLevel) +
                 " for the remaining " + FundUtils.fmt(totalUnattainedMatchingAmount) + " matching funds.");
     }
@@ -99,6 +99,22 @@ public class LevelMatcher extends CompanyMatcher
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public BigDecimal getMatchPaid(TeamMember teamMember)
+    {
+        if (employeeMemberParser == null)
+        {
+            return BigDecimal.ZERO;
+        }
+        else
+        {
+            return employeeMemberParser.getMatchPaid(teamMember.getRiderId());
+        }
+    }
+
+    /**
      * Return the matching amount a rider should receive from the company.
      *
      * @param teamMember the member to check
@@ -106,16 +122,28 @@ public class LevelMatcher extends CompanyMatcher
      */
     private FundAdjustment getMatchingForRider(TeamMember teamMember)
     {
-        BigDecimal shortOfMatching = getRiderMatchingLevel(teamMember).subtract(teamMember.getAmountRaised());
+        BigDecimal matchPaid = getMatchPaid(teamMember);
+        BigDecimal amountRaisedOnOwn = teamMember.getAmountRaised().subtract(matchPaid);
+        BigDecimal shortOfMatching = getRiderMatchingLevel(teamMember).subtract(amountRaisedOnOwn);
         if (shortOfMatching.signum() <= 0)
         {
             ++matchingCount;
             BigDecimal riderMatchingAmount = getRiderMatchingAmount(teamMember);
             totalMatching = totalMatching.add(riderMatchingAmount);
+            BigDecimal remainingMatch = riderMatchingAmount.subtract(matchPaid);
 
             FundUtils.log(teamMember.getFullName() + " earned matching " + FundUtils.fmt(riderMatchingAmount) +
-                    " after raising " + FundUtils.fmt(teamMember.getAmountRaised()) + ".");
-            return new FundAdjustment("Company rider match", riderMatchingAmount);
+                    " after raising " + FundUtils.fmt(amountRaisedOnOwn) + ".");
+            if (matchPaid.signum() != 0)
+            {
+                FundUtils.log(teamMember.getFullName() + " has already received matching " + FundUtils.fmt(matchPaid) + ".");
+            }
+
+            if (remainingMatch.signum() != 0)
+            {
+                FundUtils.log(teamMember.getFullName() + " needs matching " + FundUtils.fmt(remainingMatch) + " deposited to account.");
+                return new FundAdjustment("Undeposited company rider match", remainingMatch);
+            }
         }
         else 
         {
@@ -124,8 +152,8 @@ public class LevelMatcher extends CompanyMatcher
             totalUnattainedMatchingAmount = totalUnattainedMatchingAmount.add(getRiderMatchingAmount(teamMember));
 
             FundUtils.log(teamMember.getFullName() + " needs to raise " + FundUtils.fmt(shortOfMatching) + " before receiving matching funds.");
-            return null;
         }
+        return null;
     }
 
     /**
@@ -137,13 +165,17 @@ public class LevelMatcher extends CompanyMatcher
     private FundAdjustment getMatchingForNonRider(TeamMember teamMember)
     {
         ++matchingCount;
-        BigDecimal nonRiderMatchAmount = getNonRideratchingAmount(teamMember);
+        BigDecimal nonRiderMatchAmount = getNonRiderFixedMatchingAmount(teamMember);
         if (nonRiderMatchAmount.signum() != 0)
         {
             totalMatching = totalMatching.add(nonRiderMatchAmount);
 
             FundUtils.log(teamMember.getFullName() + " earned matching " + FundUtils.fmt(nonRiderMatchAmount) + " for being a non-rider.");
-            return new FundAdjustment("Company non-rider match", nonRiderMatchAmount);
+            BigDecimal remainingMatch = nonRiderMatchAmount.subtract(getMatchPaid(teamMember));
+            if (remainingMatch.signum() != 0)
+            {
+                return new FundAdjustment("Undeposited company non-rider match", remainingMatch);
+            }
         }
 
         return null;
@@ -207,7 +239,7 @@ public class LevelMatcher extends CompanyMatcher
      * @param teamMember without commitment
      * @return the amount he will receive
      */
-    public BigDecimal getNonRideratchingAmount(TeamMember teamMember)
+    public BigDecimal getNonRiderFixedMatchingAmount(TeamMember teamMember)
     {
         String suffix;
         if (teamMember.isVolunteer())

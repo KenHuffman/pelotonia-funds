@@ -1,9 +1,10 @@
 package com.huffmancoding.pelotonia.funds;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URL;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -15,9 +16,9 @@ import org.apache.poi.ss.usermodel.Row;
  *
  * The XLSX format should be (it may have additional ignored columns after the first column):
  * 
- * "Rider ID","Employee"
- * riderId1,{"Employee"|"Family"}
- * riderId2,{"Employee"|"Family"}
+ * "Rider ID","Employee","Paid"
+ * riderId1,{"Employee"|"Family"},"y"
+ * riderId2,{"Employee"|"Family"},"n"
  * ...
  *
  * @author khuffman
@@ -30,11 +31,14 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
     /** header title for the column that contains whether the member is an employee or not */
     private static final SpreadsheetColumn EMPLOYEE_COLUMN = new SpreadsheetColumn("Employee");
 
+    /** header title for the column that contains whether the member is an employee or not */
+    private static final SpreadsheetColumn PAID_COLUMN = new SpreadsheetColumn("Paid");
+
     /** The format of the rider id assigned by Pelotonia. */
     private static final Pattern RIDER_ID_PATTERN = Pattern.compile("[A-Z][A-Z][0-9][0-9][0-9][0-9]");
 
     /** the list of team members in the file. */
-    private final Set<String> employeRiderIDs = new TreeSet<>();
+    private final Map<String, BigDecimal> employeRiderIDs = new TreeMap<>();
 
     /**
      * Constructor.
@@ -55,7 +59,18 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
      */
     public boolean isEmployee(String riderId)
     {
-        return employeRiderIDs.contains(riderId);
+        return employeRiderIDs.containsKey(riderId);
+    }
+
+    /**
+     * Whether the employee's current fund balance includes the paid match.
+     *
+     * @param riderId the id of the rider
+     * @return amount of the match that has already been pad
+     */
+    public BigDecimal getMatchPaid(String riderId)
+    {
+        return employeRiderIDs.get(riderId);
     }
 
     /**
@@ -78,14 +93,21 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
 
     /**
      * {@inheritDoc}
+     *
+     * Parse the employee row for the rider and employee and paid flags.
      */
     @Override
     protected void parseObjectRow(Row row) throws InvalidFormatException
     {
-        String employee = parseEmployeeRow(row);
-        if (employee != null)
+        String riderID = RIDER_ID_COLUMN.getRowString(row);
+        if (riderID != null && RIDER_ID_PATTERN.matcher(riderID).matches())
         {
-            employeRiderIDs.add(employee);
+            String employee = EMPLOYEE_COLUMN.getRowString(row);
+            if (employee != null && employee.equalsIgnoreCase("Employee"))
+            {
+                BigDecimal paid = PAID_COLUMN.getRowBigDecimal(row);
+                employeRiderIDs.put(riderID, paid);
+            }
         }
     }
 
@@ -127,31 +149,11 @@ public class EmployeeMemberSpreadsheetParser extends SpreadsheetParser
             Cell cell = row.getCell(cellIndex);
             RIDER_ID_COLUMN.isHeaderCell(cell);
             EMPLOYEE_COLUMN.isHeaderCell(cell);
+            PAID_COLUMN.isHeaderCell(cell);
         }
 
         RIDER_ID_COLUMN.checkHeaderFound();
         EMPLOYEE_COLUMN.checkHeaderFound();
-    }
-
-    /**
-     * Return the rider id if (s)he is an employee from a row in the spreadsheet.
-     *
-     * @param row the row of the spreadsheet
-     * @return null, if this is not a TeamMember row
-     * @throws InvalidFormatException in case the row is not formatted correctly.
-     */
-    private String parseEmployeeRow(Row row) throws InvalidFormatException
-    {
-        String riderID = RIDER_ID_COLUMN.getRowString(row);
-        if (riderID != null && RIDER_ID_PATTERN.matcher(riderID).matches())
-        {
-            String employee = EMPLOYEE_COLUMN.getRowString(row);
-            if (employee != null && employee.equalsIgnoreCase("Employee"))
-            {
-                return riderID;
-            }
-        }
-
-        return null;
+        PAID_COLUMN.checkHeaderFound();
     }
 }

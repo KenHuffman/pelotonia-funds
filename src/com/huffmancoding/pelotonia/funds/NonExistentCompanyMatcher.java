@@ -3,6 +3,7 @@
  */
 package com.huffmancoding.pelotonia.funds;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Properties;
 
@@ -32,6 +33,15 @@ public class NonExistentCompanyMatcher extends CompanyMatcher
     public FundAdjustment getMatchingForTeamMember(TeamMember teamMember)
     {
         return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public BigDecimal getMatchPaid(TeamMember teamMember)
+    {
+        return BigDecimal.ZERO;
     }
 
     /**

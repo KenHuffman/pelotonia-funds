@@ -1,5 +1,6 @@
 package com.huffmancoding.pelotonia.funds;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Properties;
 
@@ -66,4 +67,12 @@ public abstract class CompanyMatcher
      * @return the matching amount, or null if there's is no matching for this team member
      */
     public abstract FundAdjustment getMatchingForTeamMember(TeamMember teamMember);
+
+    /**
+     * Return the match already deposited on the teamMember's account.
+     *
+     * @param teamMember the team member to check
+     * @return the match amount already deposited
+     */
+    public abstract BigDecimal getMatchPaid(TeamMember teamMember);
 }

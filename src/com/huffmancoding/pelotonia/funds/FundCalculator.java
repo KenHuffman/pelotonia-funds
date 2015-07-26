@@ -177,9 +177,17 @@ public class FundCalculator
                 FundUtils.log(reportLine + ".");
 
                 String indent = "  ";
-                if (amountRaised.signum() != 0)
+                BigDecimal matchPaid = matcher.getMatchPaid(teamMember);
+                BigDecimal amountRaisedOnOwn = amountRaised.subtract(matchPaid);
+                if (amountRaisedOnOwn.signum() != 0)
                 {
-                    FundUtils.log(indent + "Amount raised: " + FundUtils.fmt(amountRaised));
+                    FundUtils.log(indent + "Amount raised on own: " + FundUtils.fmt(amountRaisedOnOwn));
+                }
+
+                if (matchPaid.signum() != 0)
+                {
+                    FundAdjustment adjustment = new FundAdjustment("Previous deposited company rider match", matchPaid);
+                    FundUtils.log(indent + adjustment.toString());
                 }
 
                 for (FundAdjustment adjustment : teamMember.getAdjustments())
