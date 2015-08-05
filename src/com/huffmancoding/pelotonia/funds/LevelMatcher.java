@@ -171,9 +171,16 @@ public class LevelMatcher extends CompanyMatcher
             totalMatching = totalMatching.add(nonRiderMatchAmount);
 
             FundUtils.log(teamMember.getFullName() + " earned matching " + FundUtils.fmt(nonRiderMatchAmount) + " for being a non-rider.");
-            BigDecimal remainingMatch = nonRiderMatchAmount.subtract(getMatchPaid(teamMember));
+            BigDecimal matchPaid = getMatchPaid(teamMember);
+            BigDecimal remainingMatch = nonRiderMatchAmount.subtract(matchPaid);
+            if (matchPaid.signum() != 0)
+            {
+                FundUtils.log(teamMember.getFullName() + " has already received matching " + FundUtils.fmt(matchPaid) + ".");
+            }
+
             if (remainingMatch.signum() != 0)
             {
+                FundUtils.log(teamMember.getFullName() + " needs matching " + FundUtils.fmt(remainingMatch) + " deposited to account.");
                 return new FundAdjustment("Undeposited company non-rider match", remainingMatch);
             }
         }
